@@ -38,9 +38,7 @@
 **
 ****************************************************************************/
 
-
-#ifndef QTGROUPBOXPROPERTYBROWSER_H
-#define QTGROUPBOXPROPERTYBROWSER_H
+#pragma once
 
 #include "qtpropertybrowser.h"
 
@@ -77,4 +75,4 @@ private:
 QT_END_NAMESPACE
 #endif
 
-#endif
+#include "qtgroupboxpropertybrowser_p.h"

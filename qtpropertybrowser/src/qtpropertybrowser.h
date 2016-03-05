@@ -38,9 +38,7 @@
 **
 ****************************************************************************/
 
-
-#ifndef QTPROPERTYBROWSER_H
-#define QTPROPERTYBROWSER_H
+#pragma once
 
 #include <QWidget>
 #include <QSet>
@@ -332,4 +330,4 @@ private:
 QT_END_NAMESPACE
 #endif
 
-#endif // QTPROPERTYBROWSER_H
+#include "qtpropertybrowser_p.h"

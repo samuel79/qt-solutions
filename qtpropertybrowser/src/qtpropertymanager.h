@@ -38,9 +38,7 @@
 **
 ****************************************************************************/
 
-
-#ifndef QTPROPERTYMANAGER_H
-#define QTPROPERTYMANAGER_H
+#pragma once
 
 #include "qtpropertybrowser.h"
 #include <QLineEdit>
@@ -766,4 +764,5 @@ private:
 QT_END_NAMESPACE
 #endif
 
-#endif
+#include "qtpropertymanager_p.h"
+

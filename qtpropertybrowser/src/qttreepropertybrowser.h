@@ -38,9 +38,7 @@
 **
 ****************************************************************************/
 
-
-#ifndef QTTREEPROPERTYBROWSER_H
-#define QTTREEPROPERTYBROWSER_H
+#pragma once
 
 #include "qtpropertybrowser.h"
 
@@ -135,4 +133,5 @@ private:
 QT_END_NAMESPACE
 #endif
 
-#endif
+#include "qttreepropertybrowser_p.h"
+

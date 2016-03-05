@@ -38,9 +38,7 @@
 **
 ****************************************************************************/
 
-
-#ifndef QTVARIANTPROPERTY_H
-#define QTVARIANTPROPERTY_H
+#pragma once
 
 #include "qtpropertybrowser.h"
 #include <QVariant>
@@ -185,4 +183,5 @@ QT_END_NAMESPACE
 
 Q_DECLARE_METATYPE(QIcon)
 Q_DECLARE_METATYPE(QtIconMap)
-#endif
+
+#include "qtvariantproperty_p.h"

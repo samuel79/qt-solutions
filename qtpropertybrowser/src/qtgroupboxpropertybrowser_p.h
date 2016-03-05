@@ -46,42 +46,58 @@
 QT_BEGIN_NAMESPACE
 #endif
 
-class QtButtonPropertyBrowserPrivate;
+class QWidget;
+class QGridLayout;
+class QLabel;
+class QGroupBox;
 
-class QT_QTPROPERTYBROWSER_EXPORT QtButtonPropertyBrowser : public QtAbstractPropertyBrowser
+class QtGroupBoxPropertyBrowserPrivate
 {
-    Q_OBJECT
+    QtGroupBoxPropertyBrowser *q_ptr;
+    Q_DECLARE_PUBLIC(QtGroupBoxPropertyBrowser)
 public:
 
-    QtButtonPropertyBrowser(QWidget *parent = 0);
-    ~QtButtonPropertyBrowser();
+    void init(QWidget *parent);
 
-    void setExpanded(QtBrowserItem *item, bool expanded);
-    bool isExpanded(QtBrowserItem *item) const;
+    void propertyInserted(QtBrowserItem *index, QtBrowserItem *afterIndex);
+    void propertyRemoved(QtBrowserItem *index);
+    void propertyChanged(QtBrowserItem *index);
+    QWidget *createEditor(QtProperty *property, QWidget *parent) const
+        { return q_ptr->createEditor(property, parent); }
 
-Q_SIGNALS:
+    void slotEditorDestroyed();
+    void slotUpdate();
 
-    void collapsed(QtBrowserItem *item);
-    void expanded(QtBrowserItem *item);
-
-protected:
-    virtual void itemInserted(QtBrowserItem *item, QtBrowserItem *afterItem);
-    virtual void itemRemoved(QtBrowserItem *item);
-    virtual void itemChanged(QtBrowserItem *item);
-
+    struct WidgetItem
+    {
+        WidgetItem() : widget(0), label(0), widgetLabel(0),
+                groupBox(0), layout(0), line(0), parent(0) { }
+        QWidget *widget; // can be null
+        QLabel *label;
+        QLabel *widgetLabel;
+        QGroupBox *groupBox;
+        QGridLayout *layout;
+        QFrame *line;
+        WidgetItem *parent;
+        QList<WidgetItem *> children;
+    };
 private:
+    void updateLater();
+    void updateItem(WidgetItem *item);
+    void insertRow(QGridLayout *layout, int row) const;
+    void removeRow(QGridLayout *layout, int row) const;
 
-    QtButtonPropertyBrowserPrivate *d_ptr;
-    Q_DECLARE_PRIVATE(QtButtonPropertyBrowser)
-    Q_DISABLE_COPY(QtButtonPropertyBrowser)
-    Q_PRIVATE_SLOT(d_func(), void slotUpdate())
-    Q_PRIVATE_SLOT(d_func(), void slotEditorDestroyed())
-    Q_PRIVATE_SLOT(d_func(), void slotToggled(bool))
+    bool hasHeader(WidgetItem *item) const;
 
+    QMap<QtBrowserItem *, WidgetItem *> m_indexToItem;
+    QMap<WidgetItem *, QtBrowserItem *> m_itemToIndex;
+    QMap<QWidget *, WidgetItem *> m_widgetToItem;
+    QGridLayout *m_mainLayout;
+    QList<WidgetItem *> m_children;
+    QList<WidgetItem *> m_recreateQueue;
 };
 
 #if QT_VERSION >= 0x040400
 QT_END_NAMESPACE
 #endif
 
-#include "qtbuttonpropertybrowser_p.h"

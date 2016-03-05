@@ -38,9 +38,7 @@
 **
 ****************************************************************************/
 
-
-#ifndef QTEDITORFACTORY_H
-#define QTEDITORFACTORY_H
+#pragma once
 
 #include "qtpropertymanager.h"
 
@@ -403,4 +401,4 @@ private:
 QT_END_NAMESPACE
 #endif
 
-#endif
+#include "qteditorfactory_p.h"
