@@ -113,22 +113,41 @@ class QtAbstractPropertyManagerPrivate;
 class QT_QTPROPERTYBROWSER_EXPORT QtAbstractPropertyManager : public QObject
 {
     Q_OBJECT
+
 public:
-
     explicit QtAbstractPropertyManager(QObject *parent = 0);
-    ~QtAbstractPropertyManager();
+	virtual ~QtAbstractPropertyManager();
 
-    QSet<QtProperty *> properties() const;
+    QSet<QtProperty*> properties() const;
     void clear() const;
 
     QtProperty *addProperty(const QString &name = QString());
-Q_SIGNALS:
 
-    void propertyInserted(QtProperty *property,
-                QtProperty *parent, QtProperty *after);
+    virtual QVariant variantValue(const QtProperty *property) const = 0;
+	virtual QVariant attributeValue(const QtProperty *property, const QString &attribute) const = 0;
+	virtual int      propertyTypeId() const = 0;
+	virtual int valueTypeId() const
+	{
+		return propertyTypeId();
+	}
+	virtual QList<QtAbstractPropertyManager*> subPropertyManagers() const
+	{
+		return{};
+	}
+
+public Q_SLOTS:
+    virtual void setValue(QtProperty *property, const QVariant &val) = 0;
+	virtual void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value) = 0;
+
+Q_SIGNALS:
+    void propertyInserted(QtProperty *property, QtProperty *parent, QtProperty *after);
     void propertyChanged(QtProperty *property);
     void propertyRemoved(QtProperty *property, QtProperty *parent);
     void propertyDestroyed(QtProperty *property);
+    void valueChanged(QtProperty *property, const QVariant &val);
+    void attributeChanged(QtProperty *property,
+                const QString &attribute, const QVariant &val);
+
 protected:
     virtual bool hasValue(const QtProperty *property) const;
     virtual QIcon valueIcon(const QtProperty *property) const;
@@ -138,6 +157,7 @@ protected:
     virtual void initializeProperty(QtProperty *property) = 0;
     virtual void uninitializeProperty(QtProperty *property);
     virtual QtProperty *createProperty();
+
 private:
     friend class QtProperty;
     QtAbstractPropertyManagerPrivate *d_ptr;
@@ -145,11 +165,16 @@ private:
     Q_DISABLE_COPY(QtAbstractPropertyManager)
 };
 
+
 class QT_QTPROPERTYBROWSER_EXPORT QtAbstractEditorFactoryBase : public QObject
 {
     Q_OBJECT
 public:
     virtual QWidget *createEditor(QtProperty *property, QWidget *parent) = 0;
+	virtual int propertyTypeId() const = 0;
+	virtual void addPropertyManager(QtAbstractPropertyManager* manager) = 0;
+	virtual void removePropertyManager(QtAbstractPropertyManager* manager) = 0;
+
 protected:
     explicit QtAbstractEditorFactoryBase(QObject *parent = 0)
         : QObject(parent) {}
@@ -177,6 +202,9 @@ public:
         }
         return 0;
     }
+	void addPropertyManager(QtAbstractPropertyManager* manager) {
+		addPropertyManager(qobject_cast<PropertyManager*>(manager));
+	}
     void addPropertyManager(PropertyManager *manager)
     {
         if (m_managers.contains(manager))
@@ -186,6 +214,9 @@ public:
         connect(manager, SIGNAL(destroyed(QObject *)),
                     this, SLOT(managerDestroyed(QObject *)));
     }
+	void removePropertyManager(QtAbstractPropertyManager* manager) {
+		removePropertyManager(qobject_cast<PropertyManager*>(manager));
+	}
     void removePropertyManager(PropertyManager *manager)
     {
         if (!m_managers.contains(manager))

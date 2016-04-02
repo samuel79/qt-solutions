@@ -180,6 +180,13 @@ QtSpinBoxFactory::~QtSpinBoxFactory()
     delete d_ptr;
 }
 
+
+int QtSpinBoxFactory::propertyTypeId() const
+{
+	return QVariant::Int;
+}
+
+
 /*!
     \internal
 
@@ -327,6 +334,13 @@ QtSliderFactory::~QtSliderFactory()
     delete d_ptr;
 }
 
+
+int QtSliderFactory::propertyTypeId() const
+{
+	return QVariant::Int;
+}
+
+
 /*!
     \internal
 
@@ -469,6 +483,13 @@ QtScrollBarFactory::~QtScrollBarFactory()
     delete d_ptr;
 }
 
+
+int QtScrollBarFactory::propertyTypeId() const
+{
+	return QVariant::Int;
+}
+
+
 /*!
     \internal
 
@@ -594,6 +615,13 @@ QtCheckBoxFactory::~QtCheckBoxFactory()
     qDeleteAll(d_ptr->m_editorToProperty.keys());
     delete d_ptr;
 }
+
+
+int QtCheckBoxFactory::propertyTypeId() const
+{
+	return QVariant::Bool;
+}
+
 
 /*!
     \internal
@@ -776,6 +804,13 @@ QtDoubleSpinBoxFactory::~QtDoubleSpinBoxFactory()
     qDeleteAll(d_ptr->m_editorToProperty.keys());
     delete d_ptr;
 }
+
+
+int QtDoubleSpinBoxFactory::propertyTypeId() const
+{
+	return QVariant::Double;
+}
+
 
 /*!
     \internal
@@ -964,6 +999,13 @@ QtLineEditFactory::~QtLineEditFactory()
     delete d_ptr;
 }
 
+
+int QtLineEditFactory::propertyTypeId() const
+{
+	return QVariant::String;
+}
+
+
 /*!
     \internal
 
@@ -1104,6 +1146,13 @@ QtDateEditFactory::~QtDateEditFactory()
     delete d_ptr;
 }
 
+
+int QtDateEditFactory::propertyTypeId() const
+{
+	return QVariant::Date;
+}
+
+
 /*!
     \internal
 
@@ -1209,6 +1258,13 @@ QtTimeEditFactory::~QtTimeEditFactory()
     delete d_ptr;
 }
 
+
+int QtTimeEditFactory::propertyTypeId() const
+{
+	return QVariant::Time;
+}
+
+
 /*!
     \internal
 
@@ -1310,6 +1366,13 @@ QtDateTimeEditFactory::~QtDateTimeEditFactory()
     delete d_ptr;
 }
 
+
+int QtDateTimeEditFactory::propertyTypeId() const
+{
+	return QVariant::DateTime;
+}
+
+
 /*!
     \internal
 
@@ -1410,6 +1473,13 @@ QtKeySequenceEditorFactory::~QtKeySequenceEditorFactory()
     qDeleteAll(d_ptr->m_editorToProperty.keys());
     delete d_ptr;
 }
+
+
+int QtKeySequenceEditorFactory::propertyTypeId() const
+{
+	return QVariant::KeySequence;
+}
+
 
 /*!
     \internal
@@ -1662,6 +1732,13 @@ QtCharEditorFactory::~QtCharEditorFactory()
     delete d_ptr;
 }
 
+
+int QtCharEditorFactory::propertyTypeId() const
+{
+	return QVariant::Char;
+}
+
+
 /*!
     \internal
 
@@ -1811,6 +1888,13 @@ QtEnumEditorFactory::~QtEnumEditorFactory()
     delete d_ptr;
 }
 
+
+int QtEnumEditorFactory::propertyTypeId() const
+{
+	return qMetaTypeId<QtEnumPropertyType>();
+}
+
+
 /*!
     \internal
 
@@ -1956,6 +2040,13 @@ QtCursorEditorFactory::~QtCursorEditorFactory()
 {
     delete d_ptr;
 }
+
+
+int QtCursorEditorFactory::propertyTypeId() const
+{
+	return QVariant::Cursor;
+}
+
 
 /*!
     \internal
@@ -2145,6 +2236,13 @@ QtColorEditorFactory::~QtColorEditorFactory()
     delete d_ptr;
 }
 
+
+int QtColorEditorFactory::propertyTypeId() const
+{
+	return QVariant::Color;
+}
+
+
 /*!
     \internal
 
@@ -2329,6 +2427,13 @@ QtFontEditorFactory::~QtFontEditorFactory()
     qDeleteAll(d_ptr->m_editorToProperty.keys());
     delete d_ptr;
 }
+
+
+int QtFontEditorFactory::propertyTypeId() const
+{
+	return QVariant::Font;
+}
+
 
 /*!
     \internal

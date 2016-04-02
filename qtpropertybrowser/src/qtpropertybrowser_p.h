@@ -68,7 +68,7 @@ public:
     QtAbstractPropertyManager * const m_manager;
 };
 
-class QtAbstractPropertyManagerPrivate
+class QtAbstractPropertyManagerPrivate 
 {
     QtAbstractPropertyManager *q_ptr;
     Q_DECLARE_PUBLIC(QtAbstractPropertyManager)

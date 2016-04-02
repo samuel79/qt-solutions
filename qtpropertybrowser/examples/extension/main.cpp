@@ -166,6 +166,7 @@ void VariantManager::setValue(QtProperty *property, const QVariant &val)
         propertyToData[property] = d;
         emit propertyChanged(property);
         emit valueChanged(property, p);
+		emit QtAbstractPropertyManager::valueChanged(property, p);
         return;
     }
     QtVariantPropertyManager::setValue(property, val);

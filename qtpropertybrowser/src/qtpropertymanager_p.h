@@ -42,12 +42,14 @@
 
 #include "qtpropertybrowser.h"
 #include "qtpropertybrowserutils_p.h"
+#include "qtpropertymanager.h"
 #include <QMetaEnum>
 #include <QDateTime>
 #include <QLocale>
 #include <QMap>
 #include <QIcon>
 #include <QLineEdit>
+#include <QVector3D>
 
 #if QT_VERSION >= 0x040400
 QT_BEGIN_NAMESPACE
@@ -219,6 +221,7 @@ static void setSimpleValue(QMap<const QtProperty *, Value> &propertyMap,
 	PropertyManager *manager,
 	void (PropertyManager::*propertyChangedSignal)(QtProperty *),
 	void (PropertyManager::*valueChangedSignal)(QtProperty *, ValueChangeParameter),
+	void (QtAbstractPropertyManager::*valueChangedSignal2)(QtProperty *, const QVariant&),
 	QtProperty *property, const Value &val)
 {
 	typedef QMap<const QtProperty *, Value> PropertyToData;
@@ -234,12 +237,14 @@ static void setSimpleValue(QMap<const QtProperty *, Value> &propertyMap,
 
 	emit(manager->*propertyChangedSignal)(property);
 	emit(manager->*valueChangedSignal)(property, val);
+	emit(manager->*valueChangedSignal2)(property, QVariant(val));
 }
 
 template <class ValueChangeParameter, class PropertyManagerPrivate, class PropertyManager, class Value>
 static void setValueInRange(PropertyManager *manager, PropertyManagerPrivate *managerPrivate,
 	void (PropertyManager::*propertyChangedSignal)(QtProperty *),
 	void (PropertyManager::*valueChangedSignal)(QtProperty *, ValueChangeParameter),
+	void (QtAbstractPropertyManager::*valueChangedSignal2)(QtProperty *, const QVariant&),
 	QtProperty *property, const Value &val,
 	void (PropertyManagerPrivate::*setSubPropertyValue)(QtProperty *, ValueChangeParameter))
 {
@@ -267,6 +272,7 @@ static void setValueInRange(PropertyManager *manager, PropertyManagerPrivate *ma
 
 	emit(manager->*propertyChangedSignal)(property);
 	emit(manager->*valueChangedSignal)(property, data.val);
+	emit(manager->*valueChangedSignal2)(property, QVariant(data.val));
 }
 
 template <class ValueChangeParameter, class PropertyManagerPrivate, class PropertyManager, class Value>
@@ -468,6 +474,143 @@ public:
 
 	typedef QMap<const QtProperty *, Data> PropertyValueMap;
 	PropertyValueMap m_values;
+};
+
+
+class QtDoubleNPropertyManager;
+
+class QtDoubleNPropertyManagerPrivate
+{
+	QtDoubleNPropertyManager *q_ptr;
+	Q_DECLARE_PUBLIC(QtDoubleNPropertyManager)
+public:
+
+	struct Data
+	{
+		QtDoubleN val;
+		double minVal = -INT_MAX;
+		double maxVal = INT_MAX;
+		double singleStep = 1;
+		int decimals = 2;
+		bool readOnly = false;
+		double minimumValue() const { return minVal; }
+		double maximumValue() const { return maxVal; }
+		void setMinimumValue(double newMinVal) {
+			this->minVal = newMinVal;
+			if( this->maxVal < this->minVal ) {
+				this->maxVal = this->minVal;
+			}
+			for( auto i=0; i < this->val.n; i++ ) {
+				if( this->val.val[i] < this->minVal ) {
+					this->val.val[i] = this->minVal;
+				}
+			}
+		}
+		void setMaximumValue(double newMaxVal) {
+			this->maxVal = newMaxVal;
+			if( this->minVal > this->maxVal ) {
+				this->minVal = this->maxVal;
+			}
+			for( auto i=0; i < this->val.n; i++ ) {
+				if( this->val.val[i] > this->maxVal ) {
+					this->val.val[i] = this->maxVal;
+				}
+			}
+		}
+	};
+
+	void slotDoubleChanged(QtProperty *property, double value);
+	void slotPropertyDestroyed(QtProperty *property);
+
+	typedef QMap<const QtProperty *, Data> PropertyValueMap;
+	PropertyValueMap m_values;
+
+	QtDoublePropertyManager *m_doublePropertyManager;
+
+	QMap<const QtProperty *, QtProperty *> m_propertyToField[QtDoubleN::MAX_SIZE];
+	QMap<const QtProperty *, QtProperty *> m_fieldToProperty[QtDoubleN::MAX_SIZE];
+};
+
+
+
+class QtIntNPropertyManager;
+
+class QtIntNPropertyManagerPrivate
+{
+	QtIntNPropertyManager *q_ptr;
+	Q_DECLARE_PUBLIC(QtIntNPropertyManager)
+public:
+
+	struct Data
+	{
+		QtIntN val;
+		int minVal = -INT_MAX;
+		int maxVal = INT_MAX;
+		int singleStep = 1;
+		bool readOnly = false;
+		int minimumValue() const { return minVal; }
+		int maximumValue() const { return maxVal; }
+		void setMinimumValue(int newMinVal) {
+			this->minVal = newMinVal;
+			if( this->maxVal < this->minVal ) {
+				this->maxVal = this->minVal;
+			}
+			for( auto i=0; i < this->val.n; i++ ) {
+				if( this->val.val[i] < this->minVal ) {
+					this->val.val[i] = this->minVal;
+				}
+			}
+		}
+		void setMaximumValue(int newMaxVal) {
+			this->maxVal = newMaxVal;
+			if( this->minVal > this->maxVal ) {
+				this->minVal = this->maxVal;
+			}
+			for( auto i=0; i < this->val.n; i++ ) {
+				if( this->val.val[i] > this->maxVal ) {
+					this->val.val[i] = this->maxVal;
+				}
+			}
+		}
+	};
+
+	void slotIntChanged(QtProperty *property, int value);
+	void slotPropertyDestroyed(QtProperty *property);
+
+	typedef QMap<const QtProperty *, Data> PropertyValueMap;
+	PropertyValueMap m_values;
+
+	QtIntPropertyManager *m_intPropertyManager;
+
+	QMap<const QtProperty *, QtProperty *> m_propertyToField[QtIntN::MAX_SIZE];
+	QMap<const QtProperty *, QtProperty *> m_fieldToProperty[QtIntN::MAX_SIZE];
+};
+
+
+class QtColorFPropertyManager;
+
+class QtColorFPropertyManagerPrivate
+{
+	QtColorFPropertyManager *q_ptr;
+	Q_DECLARE_PUBLIC(QtColorFPropertyManager)
+public:
+
+	struct Data
+	{
+		QtColorF val;
+		bool alphaHidden = false;
+	};
+
+	void slotDoubleChanged(QtProperty *property, double value);
+	void slotPropertyDestroyed(QtProperty *property);
+
+	typedef QMap<const QtProperty *, Data> PropertyValueMap;
+	PropertyValueMap m_values;
+
+	QtDoublePropertyManager *m_doublePropertyManager;
+
+	QMap<const QtProperty *, QtProperty *> m_propertyToField[4];
+	QMap<const QtProperty *, QtProperty *> m_fieldToProperty[4];
 };
 
 
@@ -823,6 +966,38 @@ public:
 	QMap<const QtProperty *, QtProperty *> m_hToProperty;
 };
 
+
+class QtVector3DPropertyManager;
+class QtVector3DPropertyManagerPrivate {
+    QtVector3DPropertyManager *q_ptr;
+    Q_DECLARE_PUBLIC(QtVector3DPropertyManager)
+public:
+
+    struct Data {
+        Data() : decimals(3) {}
+        QVector3D val;
+        int decimals;
+    };
+
+    void slotDoubleChanged(QtProperty *property, double value);
+    void slotPropertyDestroyed(QtProperty *property);
+
+    typedef QMap<const QtProperty *, Data> PropertyValueMap;
+    PropertyValueMap m_values;
+
+    QtDoublePropertyManager *m_doublePropertyManager;
+
+    QMap<const QtProperty *, QtProperty *> m_propertyToX;
+    QMap<const QtProperty *, QtProperty *> m_propertyToY;
+    QMap<const QtProperty *, QtProperty *> m_propertyToZ;
+
+    QMap<const QtProperty *, QtProperty *> m_xToProperty;
+    QMap<const QtProperty *, QtProperty *> m_yToProperty;
+    QMap<const QtProperty *, QtProperty *> m_zToProperty;
+};
+
+
+
 class QtEnumPropertyManager;
 class QtEnumPropertyManagerPrivate
 {
@@ -835,6 +1010,7 @@ public:
 		Data() : val(-1) {}
 		int val;
 		QStringList enumNames;
+		QVariantList enumValues;
 		QMap<int, QIcon> enumIcons;
 	};
 
@@ -961,7 +1137,8 @@ public:
 
 	typedef QMap<const QtProperty *, QColor> PropertyValueMap;
 	PropertyValueMap m_values;
-
+	QMap<const QtProperty *, bool> m_alphaHiddenMap;
+	
 	QtIntPropertyManager *m_intPropertyManager;
 
 	QMap<const QtProperty *, QtProperty *> m_propertyToR;

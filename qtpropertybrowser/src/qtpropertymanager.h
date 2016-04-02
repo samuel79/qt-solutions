@@ -52,12 +52,71 @@ class QTime;
 class QDateTime;
 class QLocale;
 
+class QtEnumPropertyType
+{
+};
+Q_DECLARE_METATYPE(QtEnumPropertyType)
+
+class QtFlagPropertyType
+{
+};
+Q_DECLARE_METATYPE(QtFlagPropertyType)
+
+class QtGroupPropertyType
+{
+};
+Q_DECLARE_METATYPE(QtGroupPropertyType)
+
+typedef QMap<int, QIcon> QtIconMap;
+
+/*!
+    Returns the type id for an enum property.
+*/
+inline int qtEnumTypeId()
+{
+	return qMetaTypeId<QtEnumPropertyType>();
+}
+
+/*!
+    Returns the type id for a flag property.
+*/
+inline int qtFlagTypeId()
+{
+    return qMetaTypeId<QtFlagPropertyType>();
+}
+
+/*!
+    Returns the type id for a group property.
+*/
+inline int qtGroupTypeId()
+{
+    return qMetaTypeId<QtGroupPropertyType>();
+}
+
+/*!
+    Returns the type id for a icon map attribute.
+*/
+inline int qtIconMapTypeId()
+{
+    return qMetaTypeId<QtIconMap>();
+}
+
+
 class QT_QTPROPERTYBROWSER_EXPORT QtGroupPropertyManager : public QtAbstractPropertyManager
 {
     Q_OBJECT
 public:
     QtGroupPropertyManager(QObject *parent = 0);
     ~QtGroupPropertyManager();
+
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
+	int      valueTypeId() const;
+
+public Q_SLOTS:
+    void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
 
 protected:
     virtual bool hasValue(const QtProperty *property) const;
@@ -76,18 +135,25 @@ public:
     ~QtIntPropertyManager();
 
     int value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
     int minimum(const QtProperty *property) const;
     int maximum(const QtProperty *property) const;
     int singleStep(const QtProperty *property) const;
     bool isReadOnly(const QtProperty *property) const;
 
+
 public Q_SLOTS:
     void setValue(QtProperty *property, int val);
+    void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
     void setMinimum(QtProperty *property, int minVal);
     void setMaximum(QtProperty *property, int maxVal);
     void setRange(QtProperty *property, int minVal, int maxVal);
     void setSingleStep(QtProperty *property, int step);
     void setReadOnly(QtProperty *property, bool readOnly);
+
 Q_SIGNALS:
     void valueChanged(QtProperty *property, int val);
     void rangeChanged(QtProperty *property, int minVal, int maxVal);
@@ -113,10 +179,15 @@ public:
     ~QtBoolPropertyManager();
 
     bool value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
     bool textVisible(const QtProperty *property) const;
 
 public Q_SLOTS:
     void setValue(QtProperty *property, bool val);
+    void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
     void setTextVisible(QtProperty *property, bool textVisible);
 Q_SIGNALS:
     void valueChanged(QtProperty *property, bool val);
@@ -142,6 +213,9 @@ public:
     ~QtDoublePropertyManager();
 
     double value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
     double minimum(const QtProperty *property) const;
     double maximum(const QtProperty *property) const;
     double singleStep(const QtProperty *property) const;
@@ -150,6 +224,8 @@ public:
 
 public Q_SLOTS:
     void setValue(QtProperty *property, double val);
+    void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
     void setMinimum(QtProperty *property, double minVal);
     void setMaximum(QtProperty *property, double maxVal);
     void setRange(QtProperty *property, double minVal, double maxVal);
@@ -172,6 +248,278 @@ private:
     Q_DISABLE_COPY(QtDoublePropertyManager)
 };
 
+
+class QtDoubleNPropertyManagerPrivate;
+
+class QtDoubleN
+{
+public:
+	QtDoubleN() {
+		for( auto i=0; i < MAX_SIZE; i++ ) {
+			val[i] = 0;
+		}
+	}
+	QtDoubleN(const double* values, int n) {
+		Q_ASSERT(n <= MAX_SIZE);
+		this->n = n;
+		for( auto i=0; i < this->n; i++ ) {
+			val[i] = values[i];
+		}
+	}
+	static const int MAX_SIZE = 64;
+	int    n = 0;
+	double val[MAX_SIZE];
+};
+
+Q_DECL_CONSTEXPR inline bool operator==(const QtDoubleN& c1, const QtDoubleN& c2)
+{ 
+	auto is_equal = (c1.n == c2.n);
+	if( !is_equal ) {
+		return false;
+	}
+	for( auto i=0; i < c1.n; i++ ) {
+		if( c1.val[i] != c2.val[i] ) {
+			is_equal = false;
+			break;
+		}
+	}
+	return is_equal;
+}
+
+Q_DECL_CONSTEXPR inline bool operator!=(const QtDoubleN& c1, const QtDoubleN& c2)
+{ 
+	return !(c1 == c2);
+}
+
+Q_DECLARE_METATYPE(QtDoubleN)
+
+inline int qtDoubleNTypeId()
+{
+	return qMetaTypeId<QtDoubleN>();
+}
+
+class QT_QTPROPERTYBROWSER_EXPORT QtDoubleNPropertyManager : public QtAbstractPropertyManager
+{
+    Q_OBJECT
+public:
+    QtDoubleNPropertyManager(QObject *parent = 0);
+    ~QtDoubleNPropertyManager();
+
+    QtDoublePropertyManager *subDoublePropertyManager() const;
+
+    QtDoubleN value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
+	QList<QtAbstractPropertyManager*> subPropertyManagers() const;
+    double minimum(const QtProperty *property) const;
+    double maximum(const QtProperty *property) const;
+    double singleStep(const QtProperty *property) const;
+    int decimals(const QtProperty *property) const;
+    bool isReadOnly(const QtProperty *property) const;
+
+public Q_SLOTS:
+    void setValue(QtProperty *property, const QtDoubleN& val);
+    void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
+    void setMinimum(QtProperty *property, double minVal);
+    void setMaximum(QtProperty *property, double maxVal);
+    void setRange(QtProperty *property, double minVal, double maxVal);
+    void setSingleStep(QtProperty *property, double step);
+    void setDecimals(QtProperty *property, int prec);
+    void setReadOnly(QtProperty *property, bool readOnly);
+Q_SIGNALS:
+    void valueChanged(QtProperty *property, QtDoubleN val);
+    void rangeChanged(QtProperty *property, double minVal, double maxVal);
+    void singleStepChanged(QtProperty *property, double step);
+    void decimalsChanged(QtProperty *property, int prec);
+    void readOnlyChanged(QtProperty *property, bool readOnly);
+protected:
+    QString valueText(const QtProperty *property) const;
+    virtual void initializeProperty(QtProperty *property);
+    virtual void uninitializeProperty(QtProperty *property);
+private:
+    QtDoubleNPropertyManagerPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QtDoubleNPropertyManager)
+    Q_DISABLE_COPY(QtDoubleNPropertyManager)
+    Q_PRIVATE_SLOT(d_func(), void slotDoubleChanged(QtProperty *, double))
+    Q_PRIVATE_SLOT(d_func(), void slotPropertyDestroyed(QtProperty *))
+};
+
+
+class QtIntNPropertyManagerPrivate;
+
+class QtIntN
+{
+public:
+	QtIntN() {
+		for( auto i=0; i < MAX_SIZE; i++ ) {
+			val[i] = 0;
+		}
+	}
+	QtIntN(const int* values, int n) {
+		Q_ASSERT(n <= MAX_SIZE);
+		this->n = n;
+		for( auto i=0; i < this->n; i++ ) {
+			val[i] = values[i];
+		}
+	}
+	static const int MAX_SIZE = 64;
+	int    n = 0;
+	int    val[MAX_SIZE];
+};
+
+Q_DECL_CONSTEXPR inline bool operator==(const QtIntN& c1, const QtIntN& c2)
+{
+	auto is_equal = (c1.n == c2.n);
+	if( !is_equal ) {
+		return false;
+	}
+	for( auto i=0; i < c1.n; i++ ) {
+		if( c1.val[i] != c2.val[i] ) {
+			is_equal = false;
+			break;
+		}
+	}
+	return is_equal;
+}
+
+Q_DECL_CONSTEXPR inline bool operator!=(const QtIntN& c1, const QtIntN& c2)
+{
+	return !(c1 == c2);
+}
+
+Q_DECLARE_METATYPE(QtIntN)
+
+inline int qtIntNTypeId()
+{
+	return qMetaTypeId<QtIntN>();
+}
+
+class QT_QTPROPERTYBROWSER_EXPORT QtIntNPropertyManager : public QtAbstractPropertyManager
+{
+	Q_OBJECT
+public:
+	QtIntNPropertyManager(QObject *parent = 0);
+	~QtIntNPropertyManager();
+
+	QtIntPropertyManager *subIntPropertyManager() const;
+
+	QtIntN value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
+	QList<QtAbstractPropertyManager*> subPropertyManagers() const;
+	int minimum(const QtProperty *property) const;
+	int maximum(const QtProperty *property) const;
+	int singleStep(const QtProperty *property) const;
+	bool isReadOnly(const QtProperty *property) const;
+
+	public Q_SLOTS:
+	void setValue(QtProperty *property, const QtIntN& val);
+	void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
+	void setMinimum(QtProperty *property, int minVal);
+	void setMaximum(QtProperty *property, int maxVal);
+	void setRange(QtProperty *property, int minVal, int maxVal);
+	void setSingleStep(QtProperty *property, int step);
+	void setReadOnly(QtProperty *property, bool readOnly);
+Q_SIGNALS:
+	void valueChanged(QtProperty *property, QtIntN val);
+	void rangeChanged(QtProperty *property, int minVal, int maxVal);
+	void singleStepChanged(QtProperty *property, int step);
+	void readOnlyChanged(QtProperty *property, bool readOnly);
+protected:
+	QString valueText(const QtProperty *property) const;
+	virtual void initializeProperty(QtProperty *property);
+	virtual void uninitializeProperty(QtProperty *property);
+private:
+	QtIntNPropertyManagerPrivate *d_ptr;
+	Q_DECLARE_PRIVATE(QtIntNPropertyManager)
+	Q_DISABLE_COPY(QtIntNPropertyManager)
+	Q_PRIVATE_SLOT(d_func(), void slotIntChanged(QtProperty *, int))
+	Q_PRIVATE_SLOT(d_func(), void slotPropertyDestroyed(QtProperty *))
+};
+
+
+class QtColorFPropertyManagerPrivate;
+
+class QtColorF
+{
+public:
+	QtColorF() {
+		val[0] = 0;
+		val[1] = 0;
+		val[2] = 0;
+		val[3] = 1;
+	}
+	QtColorF(const double* rgba, int size=3) {
+		val[3] = 1;
+		for( auto i=0; i < size; i++ ) {
+			val[i] = qBound(0.0, rgba[i], 1.0);
+		}
+	}
+	double val[4];
+};
+
+Q_DECL_CONSTEXPR inline bool operator==(const QtColorF& c1, const QtColorF& c2)
+{ 
+	return (c1.val[0] == c2.val[0] && c1.val[1] == c2.val[1] && c1.val[2] == c2.val[2] && c1.val[3] == c2.val[3]);
+}
+
+Q_DECL_CONSTEXPR inline bool operator!=(const QtColorF& c1, const QtColorF& c2)
+{ 
+	return !(c1 == c2);
+}
+
+Q_DECLARE_METATYPE(QtColorF)
+
+inline int qtColorFTypeId()
+{
+	return qMetaTypeId<QtColorF>();
+}
+
+class QT_QTPROPERTYBROWSER_EXPORT QtColorFPropertyManager : public QtAbstractPropertyManager
+{
+	Q_OBJECT
+public:
+	QtColorFPropertyManager(QObject *parent = 0);
+	~QtColorFPropertyManager();
+
+	QtDoublePropertyManager *subDoublePropertyManager() const;
+
+	QtColorF value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
+	QList<QtAbstractPropertyManager*> subPropertyManagers() const;
+    bool     alphaHidden(const QtProperty *property) const;
+
+	const int SIZE = 4;
+
+	public Q_SLOTS:
+	void setValue(QtProperty *property, const QtColorF& val);
+	void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
+	void setAlphaHidden(QtProperty *property, bool alphaHidden);
+Q_SIGNALS:
+	void valueChanged(QtProperty *property, QtColorF val);
+	void alphaHiddenChanged(QtProperty *property, bool alphaHidden);
+protected:
+	QString valueText(const QtProperty *property) const;
+    QIcon valueIcon(const QtProperty *property) const;
+	virtual void initializeProperty(QtProperty *property);
+	virtual void uninitializeProperty(QtProperty *property);
+private:
+	QtColorFPropertyManagerPrivate *d_ptr;
+	Q_DECLARE_PRIVATE(QtColorFPropertyManager)
+	Q_DISABLE_COPY(QtColorFPropertyManager)
+	Q_PRIVATE_SLOT(d_func(), void slotDoubleChanged(QtProperty *, double))
+	Q_PRIVATE_SLOT(d_func(), void slotPropertyDestroyed(QtProperty *))
+};
+
+
+
 class QtStringPropertyManagerPrivate;
 
 class QT_QTPROPERTYBROWSER_EXPORT QtStringPropertyManager : public QtAbstractPropertyManager
@@ -182,12 +530,17 @@ public:
     ~QtStringPropertyManager();
 
     QString value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
     QRegExp regExp(const QtProperty *property) const;
     EchoMode echoMode(const QtProperty *property) const;
     bool isReadOnly(const QtProperty *property) const;
 
 public Q_SLOTS:
     void setValue(QtProperty *property, const QString &val);
+    void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
     void setRegExp(QtProperty *property, const QRegExp &regExp);
     void setEchoMode(QtProperty *property, EchoMode echoMode);
     void setReadOnly(QtProperty *property, bool readOnly);
@@ -219,11 +572,16 @@ public:
     ~QtDatePropertyManager();
 
     QDate value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
     QDate minimum(const QtProperty *property) const;
     QDate maximum(const QtProperty *property) const;
 
 public Q_SLOTS:
     void setValue(QtProperty *property, const QDate &val);
+    void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
     void setMinimum(QtProperty *property, const QDate &minVal);
     void setMaximum(QtProperty *property, const QDate &maxVal);
     void setRange(QtProperty *property, const QDate &minVal, const QDate &maxVal);
@@ -250,9 +608,14 @@ public:
     ~QtTimePropertyManager();
 
     QTime value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
 
 public Q_SLOTS:
     void setValue(QtProperty *property, const QTime &val);
+    void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
 Q_SIGNALS:
     void valueChanged(QtProperty *property, const QTime &val);
 protected:
@@ -275,9 +638,14 @@ public:
     ~QtDateTimePropertyManager();
 
     QDateTime value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
 
 public Q_SLOTS:
     void setValue(QtProperty *property, const QDateTime &val);
+    void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
 Q_SIGNALS:
     void valueChanged(QtProperty *property, const QDateTime &val);
 protected:
@@ -300,9 +668,14 @@ public:
     ~QtKeySequencePropertyManager();
 
     QKeySequence value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
 
 public Q_SLOTS:
     void setValue(QtProperty *property, const QKeySequence &val);
+    void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
 Q_SIGNALS:
     void valueChanged(QtProperty *property, const QKeySequence &val);
 protected:
@@ -325,9 +698,14 @@ public:
     ~QtCharPropertyManager();
 
     QChar value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
 
 public Q_SLOTS:
     void setValue(QtProperty *property, const QChar &val);
+    void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
 Q_SIGNALS:
     void valueChanged(QtProperty *property, const QChar &val);
 protected:
@@ -353,9 +731,15 @@ public:
     QtEnumPropertyManager *subEnumPropertyManager() const;
 
     QLocale value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
+	QList<QtAbstractPropertyManager*> subPropertyManagers() const;
 
 public Q_SLOTS:
     void setValue(QtProperty *property, const QLocale &val);
+    void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
 Q_SIGNALS:
     void valueChanged(QtProperty *property, const QLocale &val);
 protected:
@@ -382,9 +766,15 @@ public:
     QtIntPropertyManager *subIntPropertyManager() const;
 
     QPoint value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
+	QList<QtAbstractPropertyManager*> subPropertyManagers() const;
 
 public Q_SLOTS:
     void setValue(QtProperty *property, const QPoint &val);
+    void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
 Q_SIGNALS:
     void valueChanged(QtProperty *property, const QPoint &val);
 protected:
@@ -411,10 +801,16 @@ public:
     QtDoublePropertyManager *subDoublePropertyManager() const;
 
     QPointF value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
+	QList<QtAbstractPropertyManager*> subPropertyManagers() const;
     int decimals(const QtProperty *property) const;
 
 public Q_SLOTS:
     void setValue(QtProperty *property, const QPointF &val);
+    void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
     void setDecimals(QtProperty *property, int prec);
 Q_SIGNALS:
     void valueChanged(QtProperty *property, const QPointF &val);
@@ -443,11 +839,17 @@ public:
     QtIntPropertyManager *subIntPropertyManager() const;
 
     QSize value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
+	QList<QtAbstractPropertyManager*> subPropertyManagers() const;
     QSize minimum(const QtProperty *property) const;
     QSize maximum(const QtProperty *property) const;
 
 public Q_SLOTS:
     void setValue(QtProperty *property, const QSize &val);
+    void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
     void setMinimum(QtProperty *property, const QSize &minVal);
     void setMaximum(QtProperty *property, const QSize &maxVal);
     void setRange(QtProperty *property, const QSize &minVal, const QSize &maxVal);
@@ -478,12 +880,18 @@ public:
     QtDoublePropertyManager *subDoublePropertyManager() const;
 
     QSizeF value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
+	QList<QtAbstractPropertyManager*> subPropertyManagers() const;
     QSizeF minimum(const QtProperty *property) const;
     QSizeF maximum(const QtProperty *property) const;
     int decimals(const QtProperty *property) const;
 
 public Q_SLOTS:
     void setValue(QtProperty *property, const QSizeF &val);
+    void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
     void setMinimum(QtProperty *property, const QSizeF &minVal);
     void setMaximum(QtProperty *property, const QSizeF &maxVal);
     void setRange(QtProperty *property, const QSizeF &minVal, const QSizeF &maxVal);
@@ -516,10 +924,16 @@ public:
     QtIntPropertyManager *subIntPropertyManager() const;
 
     QRect value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
+	QList<QtAbstractPropertyManager*> subPropertyManagers() const;
     QRect constraint(const QtProperty *property) const;
 
 public Q_SLOTS:
     void setValue(QtProperty *property, const QRect &val);
+    void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
     void setConstraint(QtProperty *property, const QRect &constraint);
 Q_SIGNALS:
     void valueChanged(QtProperty *property, const QRect &val);
@@ -548,11 +962,17 @@ public:
     QtDoublePropertyManager *subDoublePropertyManager() const;
 
     QRectF value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
+	QList<QtAbstractPropertyManager*> subPropertyManagers() const;
     QRectF constraint(const QtProperty *property) const;
     int decimals(const QtProperty *property) const;
 
 public Q_SLOTS:
     void setValue(QtProperty *property, const QRectF &val);
+    void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
     void setConstraint(QtProperty *property, const QRectF &constraint);
     void setDecimals(QtProperty *property, int prec);
 Q_SIGNALS:
@@ -571,6 +991,47 @@ private:
     Q_PRIVATE_SLOT(d_func(), void slotPropertyDestroyed(QtProperty *))
 };
 
+
+class QtVector3DPropertyManagerPrivate;
+class QVector3D;
+
+class QT_QTPROPERTYBROWSER_EXPORT QtVector3DPropertyManager : public QtAbstractPropertyManager 
+{
+    Q_OBJECT
+public:
+    QtVector3DPropertyManager(QObject *parent = 0);
+    ~QtVector3DPropertyManager();
+
+    QtDoublePropertyManager *subDoublePropertyManager() const;
+
+    QVector3D value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
+	QList<QtAbstractPropertyManager*> subPropertyManagers() const;
+    int decimals(const QtProperty *property) const;
+
+public Q_SLOTS:
+    void setValue(QtProperty *property, const QVector3D &val);
+    void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
+    void setDecimals(QtProperty *property, int prec);
+Q_SIGNALS:
+    void valueChanged(QtProperty *property, const QVector3D &val);
+    void decimalsChanged(QtProperty *property, int prec);
+protected:
+    QString valueText(const QtProperty *property) const;
+    virtual void initializeProperty(QtProperty *property);
+    virtual void uninitializeProperty(QtProperty *property);
+private:
+    QtVector3DPropertyManagerPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QtVector3DPropertyManager)
+    Q_DISABLE_COPY(QtVector3DPropertyManager)
+    Q_PRIVATE_SLOT(d_func(), void slotDoubleChanged(QtProperty *, double))
+    Q_PRIVATE_SLOT(d_func(), void slotPropertyDestroyed(QtProperty *))
+};
+
+
 class QtEnumPropertyManagerPrivate;
 
 class QT_QTPROPERTYBROWSER_EXPORT QtEnumPropertyManager : public QtAbstractPropertyManager
@@ -581,16 +1042,25 @@ public:
     ~QtEnumPropertyManager();
 
     int value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
+	int      valueTypeId() const;
     QStringList enumNames(const QtProperty *property) const;
+    QVariantList enumValues(const QtProperty *property) const;
     QMap<int, QIcon> enumIcons(const QtProperty *property) const;
 
 public Q_SLOTS:
     void setValue(QtProperty *property, int val);
+    void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
     void setEnumNames(QtProperty *property, const QStringList &names);
+    void setEnumValues(QtProperty *property, const QVariantList& values);
     void setEnumIcons(QtProperty *property, const QMap<int, QIcon> &icons);
 Q_SIGNALS:
     void valueChanged(QtProperty *property, int val);
     void enumNamesChanged(QtProperty *property, const QStringList &names);
+    void enumValuesChanged(QtProperty *property, const QVariantList& values);
     void enumIconsChanged(QtProperty *property, const QMap<int, QIcon> &icons);
 protected:
     QString valueText(const QtProperty *property) const;
@@ -615,10 +1085,17 @@ public:
     QtBoolPropertyManager *subBoolPropertyManager() const;
 
     int value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
+	int      valueTypeId() const;
+	QList<QtAbstractPropertyManager*> subPropertyManagers() const;
     QStringList flagNames(const QtProperty *property) const;
 
 public Q_SLOTS:
     void setValue(QtProperty *property, int val);
+    void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
     void setFlagNames(QtProperty *property, const QStringList &names);
 Q_SIGNALS:
     void valueChanged(QtProperty *property, int val);
@@ -648,9 +1125,15 @@ public:
     QtEnumPropertyManager *subEnumPropertyManager() const;
 
     QSizePolicy value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
+	QList<QtAbstractPropertyManager*> subPropertyManagers() const;
 
 public Q_SLOTS:
     void setValue(QtProperty *property, const QSizePolicy &val);
+    void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
 Q_SIGNALS:
     void valueChanged(QtProperty *property, const QSizePolicy &val);
 protected:
@@ -680,9 +1163,15 @@ public:
     QtBoolPropertyManager *subBoolPropertyManager() const;
 
     QFont value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
+	QList<QtAbstractPropertyManager*> subPropertyManagers() const;
 
 public Q_SLOTS:
     void setValue(QtProperty *property, const QFont &val);
+    void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
 Q_SIGNALS:
     void valueChanged(QtProperty *property, const QFont &val);
 protected:
@@ -714,11 +1203,20 @@ public:
     QtIntPropertyManager *subIntPropertyManager() const;
 
     QColor value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
+	QList<QtAbstractPropertyManager*> subPropertyManagers() const;
+    bool     alphaHidden(const QtProperty *property) const;
 
 public Q_SLOTS:
     void setValue(QtProperty *property, const QColor &val);
+    void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
+	void setAlphaHidden(QtProperty *property, bool alphaHidden);
 Q_SIGNALS:
     void valueChanged(QtProperty *property, const QColor &val);
+	void alphaHiddenChanged(QtProperty *property, bool alphaHidden);
 protected:
     QString valueText(const QtProperty *property) const;
     QIcon valueIcon(const QtProperty *property) const;
@@ -743,10 +1241,15 @@ public:
 
 #ifndef QT_NO_CURSOR
     QCursor value(const QtProperty *property) const;
+	QVariant variantValue(const QtProperty *property) const;
 #endif
+	QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	int      propertyTypeId() const;
 
 public Q_SLOTS:
     void setValue(QtProperty *property, const QCursor &val);
+    void setValue(QtProperty *property, const QVariant &val);
+	void setAttribute(QtProperty *property, const QString &attribute, const QVariant &value);
 Q_SIGNALS:
     void valueChanged(QtProperty *property, const QCursor &val);
 protected:

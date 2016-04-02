@@ -187,6 +187,41 @@ int main(int argc, char **argv)
     item = variantManager->addProperty(QVariant::Color, QString::number(i++) + QLatin1String(" Color Property"));
     topItem->addSubProperty(item);
 
+    item = variantManager->addProperty(QVariant::Color, QString::number(i++) + QLatin1String(" Color Property"));
+	item->setAttribute("alphaHidden", true);
+    topItem->addSubProperty(item);
+
+    item = variantManager->addProperty(qtColorFTypeId(), QString::number(i++) + QLatin1String(" ColorF Property"));
+    topItem->addSubProperty(item);
+
+    item = variantManager->addProperty(qtColorFTypeId(), QString::number(i++) + QLatin1String(" ColorF Property"));
+	item->setAttribute("alphaHidden", true);
+	topItem->addSubProperty(item);
+
+	{
+		item = variantManager->addProperty(qtDoubleNTypeId(), QString::number(i++) + QLatin1String(" DoubleN Property"));
+		QtDoubleN val;
+		val.n = 3;
+		val.val[0] = 0.01;
+		val.val[1] = 0.50;
+		val.val[2] = 9.00;
+		item->setAttribute("maximum", 8.0);
+		item->setValue(QVariant::fromValue(val));
+		topItem->addSubProperty(item);
+	}
+
+	{
+		item = variantManager->addProperty(qtIntNTypeId(), QString::number(i++) + QLatin1String(" IntN Property"));
+		QtIntN val;
+		val.n = 12;
+		for( auto i=0; i < val.n; i++ ) {
+			val.val[i] = i * 2;
+		}
+		item->setValue(QVariant::fromValue(val));
+		item->setAttribute("maximum", 1023);
+		topItem->addSubProperty(item);
+	}
+
     QtVariantEditorFactory *variantFactory = new QtVariantEditorFactory();
 
     QtTreePropertyBrowser *variantEditor = new QtTreePropertyBrowser();

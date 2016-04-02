@@ -54,6 +54,7 @@ class QT_QTPROPERTYBROWSER_EXPORT QtSpinBoxFactory : public QtAbstractEditorFact
 public:
     QtSpinBoxFactory(QObject *parent = 0);
     ~QtSpinBoxFactory();
+	int propertyTypeId() const;
 protected:
     void connectPropertyManager(QtIntPropertyManager *manager);
     QWidget *createEditor(QtIntPropertyManager *manager, QtProperty *property,
@@ -79,6 +80,7 @@ class QT_QTPROPERTYBROWSER_EXPORT QtSliderFactory : public QtAbstractEditorFacto
 public:
     QtSliderFactory(QObject *parent = 0);
     ~QtSliderFactory();
+	int propertyTypeId() const;
 protected:
     void connectPropertyManager(QtIntPropertyManager *manager);
     QWidget *createEditor(QtIntPropertyManager *manager, QtProperty *property,
@@ -103,6 +105,7 @@ class QT_QTPROPERTYBROWSER_EXPORT QtScrollBarFactory : public QtAbstractEditorFa
 public:
     QtScrollBarFactory(QObject *parent = 0);
     ~QtScrollBarFactory();
+	int propertyTypeId() const;
 protected:
     void connectPropertyManager(QtIntPropertyManager *manager);
     QWidget *createEditor(QtIntPropertyManager *manager, QtProperty *property,
@@ -127,6 +130,7 @@ class QT_QTPROPERTYBROWSER_EXPORT QtCheckBoxFactory : public QtAbstractEditorFac
 public:
     QtCheckBoxFactory(QObject *parent = 0);
     ~QtCheckBoxFactory();
+	int propertyTypeId() const;
 protected:
     void connectPropertyManager(QtBoolPropertyManager *manager);
     QWidget *createEditor(QtBoolPropertyManager *manager, QtProperty *property,
@@ -150,6 +154,7 @@ class QT_QTPROPERTYBROWSER_EXPORT QtDoubleSpinBoxFactory : public QtAbstractEdit
 public:
     QtDoubleSpinBoxFactory(QObject *parent = 0);
     ~QtDoubleSpinBoxFactory();
+	int propertyTypeId() const;
 protected:
     void connectPropertyManager(QtDoublePropertyManager *manager);
     QWidget *createEditor(QtDoublePropertyManager *manager, QtProperty *property,
@@ -176,6 +181,7 @@ class QT_QTPROPERTYBROWSER_EXPORT QtLineEditFactory : public QtAbstractEditorFac
 public:
     QtLineEditFactory(QObject *parent = 0);
     ~QtLineEditFactory();
+	int propertyTypeId() const;
 protected:
     void connectPropertyManager(QtStringPropertyManager *manager);
     QWidget *createEditor(QtStringPropertyManager *manager, QtProperty *property,
@@ -201,6 +207,7 @@ class QT_QTPROPERTYBROWSER_EXPORT QtDateEditFactory : public QtAbstractEditorFac
 public:
     QtDateEditFactory(QObject *parent = 0);
     ~QtDateEditFactory();
+	int propertyTypeId() const;
 protected:
     void connectPropertyManager(QtDatePropertyManager *manager);
     QWidget *createEditor(QtDatePropertyManager *manager, QtProperty *property,
@@ -225,6 +232,7 @@ class QT_QTPROPERTYBROWSER_EXPORT QtTimeEditFactory : public QtAbstractEditorFac
 public:
     QtTimeEditFactory(QObject *parent = 0);
     ~QtTimeEditFactory();
+	int propertyTypeId() const;
 protected:
     void connectPropertyManager(QtTimePropertyManager *manager);
     QWidget *createEditor(QtTimePropertyManager *manager, QtProperty *property,
@@ -247,6 +255,7 @@ class QT_QTPROPERTYBROWSER_EXPORT QtDateTimeEditFactory : public QtAbstractEdito
 public:
     QtDateTimeEditFactory(QObject *parent = 0);
     ~QtDateTimeEditFactory();
+	int propertyTypeId() const;
 protected:
     void connectPropertyManager(QtDateTimePropertyManager *manager);
     QWidget *createEditor(QtDateTimePropertyManager *manager, QtProperty *property,
@@ -269,6 +278,7 @@ class QT_QTPROPERTYBROWSER_EXPORT QtKeySequenceEditorFactory : public QtAbstract
 public:
     QtKeySequenceEditorFactory(QObject *parent = 0);
     ~QtKeySequenceEditorFactory();
+	int propertyTypeId() const;
 protected:
     void connectPropertyManager(QtKeySequencePropertyManager *manager);
     QWidget *createEditor(QtKeySequencePropertyManager *manager, QtProperty *property,
@@ -291,6 +301,7 @@ class QT_QTPROPERTYBROWSER_EXPORT QtCharEditorFactory : public QtAbstractEditorF
 public:
     QtCharEditorFactory(QObject *parent = 0);
     ~QtCharEditorFactory();
+	int propertyTypeId() const;
 protected:
     void connectPropertyManager(QtCharPropertyManager *manager);
     QWidget *createEditor(QtCharPropertyManager *manager, QtProperty *property,
@@ -313,6 +324,7 @@ class QT_QTPROPERTYBROWSER_EXPORT QtEnumEditorFactory : public QtAbstractEditorF
 public:
     QtEnumEditorFactory(QObject *parent = 0);
     ~QtEnumEditorFactory();
+	int propertyTypeId() const;
 protected:
     void connectPropertyManager(QtEnumPropertyManager *manager);
     QWidget *createEditor(QtEnumPropertyManager *manager, QtProperty *property,
@@ -339,6 +351,7 @@ class QT_QTPROPERTYBROWSER_EXPORT QtCursorEditorFactory : public QtAbstractEdito
 public:
     QtCursorEditorFactory(QObject *parent = 0);
     ~QtCursorEditorFactory();
+	int propertyTypeId() const;
 protected:
     void connectPropertyManager(QtCursorPropertyManager *manager);
     QWidget *createEditor(QtCursorPropertyManager *manager, QtProperty *property,
@@ -361,6 +374,7 @@ class QT_QTPROPERTYBROWSER_EXPORT QtColorEditorFactory : public QtAbstractEditor
 public:
     QtColorEditorFactory(QObject *parent = 0);
     ~QtColorEditorFactory();
+	int propertyTypeId() const;
 protected:
     void connectPropertyManager(QtColorPropertyManager *manager);
     QWidget *createEditor(QtColorPropertyManager *manager, QtProperty *property,
@@ -383,6 +397,7 @@ class QT_QTPROPERTYBROWSER_EXPORT QtFontEditorFactory : public QtAbstractEditorF
 public:
     QtFontEditorFactory(QObject *parent = 0);
     ~QtFontEditorFactory();
+	int propertyTypeId() const;
 protected:
     void connectPropertyManager(QtFontPropertyManager *manager);
     QWidget *createEditor(QtFontPropertyManager *manager, QtProperty *property,

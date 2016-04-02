@@ -182,10 +182,15 @@ QIcon QtPropertyBrowserUtils::brushValueIcon(const QBrush &b)
     return QIcon(brushValuePixmap(b));
 }
 
-QString QtPropertyBrowserUtils::colorValueText(const QColor &c)
+QString QtPropertyBrowserUtils::colorValueText(const QColor &c, bool alphaHidden)
 {
-    return QCoreApplication::translate("QtPropertyBrowserUtils", "[%1, %2, %3] (%4)")
-           .arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alpha());
+	if( !alphaHidden ) {
+		return QCoreApplication::translate("QtPropertyBrowserUtils", "[%1, %2, %3] (%4)")
+			.arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alpha());
+	} else {
+		return QCoreApplication::translate("QtPropertyBrowserUtils", "[%1, %2, %3]")
+			.arg(c.red()).arg(c.green()).arg(c.blue());
+	}
 }
 
 QPixmap QtPropertyBrowserUtils::fontValuePixmap(const QFont &font)

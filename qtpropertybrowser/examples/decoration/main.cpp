@@ -158,6 +158,9 @@ class DecoratedDoubleSpinBoxFactory : public QtAbstractEditorFactory<DecoratedDo
 public:
     DecoratedDoubleSpinBoxFactory(QObject *parent = 0);
     ~DecoratedDoubleSpinBoxFactory();
+	virtual int propertyTypeId() const {
+		return QVariant::Double;
+	}
 protected:
     void connectPropertyManager(DecoratedDoublePropertyManager *manager);
     QWidget *createEditor(DecoratedDoublePropertyManager *manager, QtProperty *property,

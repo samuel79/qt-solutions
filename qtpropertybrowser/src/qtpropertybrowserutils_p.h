@@ -93,7 +93,7 @@ class QtPropertyBrowserUtils
 public:
     static QPixmap brushValuePixmap(const QBrush &b);
     static QIcon brushValueIcon(const QBrush &b);
-    static QString colorValueText(const QColor &c);
+    static QString colorValueText(const QColor &c, bool alphaHidden=false);
     static QPixmap fontValuePixmap(const QFont &f);
     static QIcon fontValueIcon(const QFont &f);
     static QString fontValueText(const QFont &f);

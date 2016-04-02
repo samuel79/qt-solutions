@@ -53,6 +53,7 @@ typedef QMap<int, QIcon> QtIconMap;
 class QtVariantPropertyManager;
 class QtVariantPropertyPrivate;
 
+
 class QT_QTPROPERTYBROWSER_EXPORT QtVariantProperty : public QtProperty
 {
 public:
@@ -88,16 +89,21 @@ public:
 
     virtual bool isPropertyTypeSupported(int propertyType) const;
     virtual int valueType(int propertyType) const;
-    virtual QStringList attributes(int propertyType) const;
-    virtual int attributeType(int propertyType, const QString &attribute) const;
 
     virtual QVariant value(const QtProperty *property) const;
+	virtual QVariant variantValue(const QtProperty *property) const;
     virtual QVariant attributeValue(const QtProperty *property, const QString &attribute) const;
+	virtual int      propertyTypeId() const;
+	virtual QList<QtAbstractPropertyManager*> subPropertyManagers() const;
 
-    static int enumTypeId();
-    static int flagTypeId();
-    static int groupTypeId();
-    static int iconMapTypeId();
+	void addPropertyManager(QtAbstractPropertyManager* manager);
+	void addSubPropertyManager(QtAbstractPropertyManager* manager);
+
+	static int enumTypeId();
+	static int flagTypeId();
+	static int groupTypeId();
+	static int iconMapTypeId();
+
 public Q_SLOTS:
     virtual void setValue(QtProperty *property, const QVariant &val);
     virtual void setAttribute(QtProperty *property,
@@ -115,45 +121,11 @@ protected:
     virtual QtProperty *createProperty();
 private:
     QtVariantPropertyManagerPrivate *d_ptr;
-    Q_PRIVATE_SLOT(d_func(), void slotValueChanged(QtProperty *, int))
-    Q_PRIVATE_SLOT(d_func(), void slotRangeChanged(QtProperty *, int, int))
-    Q_PRIVATE_SLOT(d_func(), void slotSingleStepChanged(QtProperty *, int))
-    Q_PRIVATE_SLOT(d_func(), void slotValueChanged(QtProperty *, double))
-    Q_PRIVATE_SLOT(d_func(), void slotRangeChanged(QtProperty *, double, double))
-    Q_PRIVATE_SLOT(d_func(), void slotSingleStepChanged(QtProperty *, double))
-    Q_PRIVATE_SLOT(d_func(), void slotDecimalsChanged(QtProperty *, int))
-    Q_PRIVATE_SLOT(d_func(), void slotValueChanged(QtProperty *, bool))
-    Q_PRIVATE_SLOT(d_func(), void slotValueChanged(QtProperty *, const QString &))
-    Q_PRIVATE_SLOT(d_func(), void slotRegExpChanged(QtProperty *, const QRegExp &))
-    Q_PRIVATE_SLOT(d_func(), void slotEchoModeChanged(QtProperty *, int))
-    Q_PRIVATE_SLOT(d_func(), void slotValueChanged(QtProperty *, const QDate &))
-    Q_PRIVATE_SLOT(d_func(), void slotRangeChanged(QtProperty *, const QDate &, const QDate &))
-    Q_PRIVATE_SLOT(d_func(), void slotValueChanged(QtProperty *, const QTime &))
-    Q_PRIVATE_SLOT(d_func(), void slotValueChanged(QtProperty *, const QDateTime &))
-    Q_PRIVATE_SLOT(d_func(), void slotValueChanged(QtProperty *, const QKeySequence &))
-    Q_PRIVATE_SLOT(d_func(), void slotValueChanged(QtProperty *, const QChar &))
-    Q_PRIVATE_SLOT(d_func(), void slotValueChanged(QtProperty *, const QLocale &))
-    Q_PRIVATE_SLOT(d_func(), void slotValueChanged(QtProperty *, const QPoint &))
-    Q_PRIVATE_SLOT(d_func(), void slotValueChanged(QtProperty *, const QPointF &))
-    Q_PRIVATE_SLOT(d_func(), void slotValueChanged(QtProperty *, const QSize &))
-    Q_PRIVATE_SLOT(d_func(), void slotRangeChanged(QtProperty *, const QSize &, const QSize &))
-    Q_PRIVATE_SLOT(d_func(), void slotValueChanged(QtProperty *, const QSizeF &))
-    Q_PRIVATE_SLOT(d_func(), void slotRangeChanged(QtProperty *, const QSizeF &, const QSizeF &))
-    Q_PRIVATE_SLOT(d_func(), void slotValueChanged(QtProperty *, const QRect &))
-    Q_PRIVATE_SLOT(d_func(), void slotConstraintChanged(QtProperty *, const QRect &))
-    Q_PRIVATE_SLOT(d_func(), void slotValueChanged(QtProperty *, const QRectF &))
-    Q_PRIVATE_SLOT(d_func(), void slotConstraintChanged(QtProperty *, const QRectF &))
-    Q_PRIVATE_SLOT(d_func(), void slotValueChanged(QtProperty *, const QColor &))
-    Q_PRIVATE_SLOT(d_func(), void slotEnumNamesChanged(QtProperty *, const QStringList &))
-    Q_PRIVATE_SLOT(d_func(), void slotEnumIconsChanged(QtProperty *, const QMap<int, QIcon> &))
-    Q_PRIVATE_SLOT(d_func(), void slotValueChanged(QtProperty *, const QSizePolicy &))
-    Q_PRIVATE_SLOT(d_func(), void slotValueChanged(QtProperty *, const QFont &))
-    Q_PRIVATE_SLOT(d_func(), void slotValueChanged(QtProperty *, const QCursor &))
-    Q_PRIVATE_SLOT(d_func(), void slotFlagNamesChanged(QtProperty *, const QStringList &))
-    Q_PRIVATE_SLOT(d_func(), void slotReadOnlyChanged(QtProperty *, bool))
-    Q_PRIVATE_SLOT(d_func(), void slotTextVisibleChanged(QtProperty *, bool))
+    Q_PRIVATE_SLOT(d_func(), void slotValueChanged(QtProperty *, const QVariant&))
+    Q_PRIVATE_SLOT(d_func(), void slotAttributeChanged(QtProperty *, const QString&, const QVariant&))
     Q_PRIVATE_SLOT(d_func(), void slotPropertyInserted(QtProperty *, QtProperty *, QtProperty *))
     Q_PRIVATE_SLOT(d_func(), void slotPropertyRemoved(QtProperty *, QtProperty *))
+
     Q_DECLARE_PRIVATE(QtVariantPropertyManager)
     Q_DISABLE_COPY(QtVariantPropertyManager)
 };
@@ -166,6 +138,10 @@ class QT_QTPROPERTYBROWSER_EXPORT QtVariantEditorFactory : public QtAbstractEdit
 public:
     QtVariantEditorFactory(QObject *parent = 0);
     ~QtVariantEditorFactory();
+	virtual int propertyTypeId() const;
+
+	void addEditorFactory(QtAbstractEditorFactoryBase* factory);
+
 protected:
     void connectPropertyManager(QtVariantPropertyManager *manager);
     QWidget *createEditor(QtVariantPropertyManager *manager, QtProperty *property,
