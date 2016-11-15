@@ -584,8 +584,8 @@ QtVariantPropertyManager::QtVariantPropertyManager(QObject *parent)
     addPropertyManager(new QtFlagPropertyManager(this));
     addPropertyManager(new QtGroupPropertyManager(this));
 	addPropertyManager(new QtVector3DPropertyManager(this));
-	addPropertyManager(new QtDoubleNPropertyManager(this));
-	addPropertyManager(new QtIntNPropertyManager(this));
+	addPropertyManager(new QtDoubleVectorPropertyManager(this));
+	addPropertyManager(new QtIntVectorPropertyManager(this));
 	addPropertyManager(new QtColorFPropertyManager(this));
 }
 

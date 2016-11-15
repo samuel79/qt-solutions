@@ -477,17 +477,17 @@ public:
 };
 
 
-class QtDoubleNPropertyManager;
+class QtDoubleVectorPropertyManager;
 
-class QtDoubleNPropertyManagerPrivate
+class QtDoubleVectorPropertyManagerPrivate
 {
-	QtDoubleNPropertyManager *q_ptr;
-	Q_DECLARE_PUBLIC(QtDoubleNPropertyManager)
+	QtDoubleVectorPropertyManager *q_ptr;
+	Q_DECLARE_PUBLIC(QtDoubleVectorPropertyManager)
 public:
 
 	struct Data
 	{
-		QtDoubleN val;
+		QtDoubleVector val;
 		double minVal = -INT_MAX;
 		double maxVal = INT_MAX;
 		double singleStep = 1;
@@ -500,9 +500,9 @@ public:
 			if( this->maxVal < this->minVal ) {
 				this->maxVal = this->minVal;
 			}
-			for( auto i=0; i < this->val.n; i++ ) {
-				if( this->val.val[i] < this->minVal ) {
-					this->val.val[i] = this->minVal;
+			for( auto i=0; i < this->val.size(); i++ ) {
+				if( this->val[i] < this->minVal ) {
+					this->val[i] = this->minVal;
 				}
 			}
 		}
@@ -511,9 +511,9 @@ public:
 			if( this->minVal > this->maxVal ) {
 				this->minVal = this->maxVal;
 			}
-			for( auto i=0; i < this->val.n; i++ ) {
-				if( this->val.val[i] > this->maxVal ) {
-					this->val.val[i] = this->maxVal;
+			for( auto i=0; i < this->val.size(); i++ ) {
+				if( this->val[i] > this->maxVal ) {
+					this->val[i] = this->maxVal;
 				}
 			}
 		}
@@ -527,23 +527,26 @@ public:
 
 	QtDoublePropertyManager *m_doublePropertyManager;
 
-	QMap<const QtProperty *, QtProperty *> m_propertyToField[QtDoubleN::MAX_SIZE];
-	QMap<const QtProperty *, QtProperty *> m_fieldToProperty[QtDoubleN::MAX_SIZE];
+	// main_prop -> sub_prop_list
+	QMap<const QtProperty *, QList<QtProperty*>> m_propertyToField;
+
+	// sub_prop -> main_prop
+	QMap<const QtProperty *, QtProperty *> m_fieldToProperty;
 };
 
 
 
-class QtIntNPropertyManager;
+class QtIntVectorPropertyManager;
 
-class QtIntNPropertyManagerPrivate
+class QtIntVectorPropertyManagerPrivate
 {
-	QtIntNPropertyManager *q_ptr;
-	Q_DECLARE_PUBLIC(QtIntNPropertyManager)
+	QtIntVectorPropertyManager *q_ptr;
+	Q_DECLARE_PUBLIC(QtIntVectorPropertyManager)
 public:
 
 	struct Data
 	{
-		QtIntN val;
+		QtIntVector val;
 		int minVal = -INT_MAX;
 		int maxVal = INT_MAX;
 		int singleStep = 1;
@@ -555,9 +558,9 @@ public:
 			if( this->maxVal < this->minVal ) {
 				this->maxVal = this->minVal;
 			}
-			for( auto i=0; i < this->val.n; i++ ) {
-				if( this->val.val[i] < this->minVal ) {
-					this->val.val[i] = this->minVal;
+			for( auto i=0; i < this->val.size(); i++ ) {
+				if( this->val[i] < this->minVal ) {
+					this->val[i] = this->minVal;
 				}
 			}
 		}
@@ -566,9 +569,9 @@ public:
 			if( this->minVal > this->maxVal ) {
 				this->minVal = this->maxVal;
 			}
-			for( auto i=0; i < this->val.n; i++ ) {
-				if( this->val.val[i] > this->maxVal ) {
-					this->val.val[i] = this->maxVal;
+			for( auto i=0; i < this->val.size(); i++ ) {
+				if( this->val[i] > this->maxVal ) {
+					this->val[i] = this->maxVal;
 				}
 			}
 		}
@@ -582,8 +585,11 @@ public:
 
 	QtIntPropertyManager *m_intPropertyManager;
 
-	QMap<const QtProperty *, QtProperty *> m_propertyToField[QtIntN::MAX_SIZE];
-	QMap<const QtProperty *, QtProperty *> m_fieldToProperty[QtIntN::MAX_SIZE];
+	// main_prop -> sub_prop_list
+	QMap<const QtProperty *, QList<QtProperty*>> m_propertyToField;
+
+	// sub_prop -> main_prop
+	QMap<const QtProperty *, QtProperty *> m_fieldToProperty;
 };
 
 
@@ -974,9 +980,10 @@ class QtVector3DPropertyManagerPrivate {
 public:
 
     struct Data {
-        Data() : decimals(3) {}
+        Data() : decimals(3), readOnly(false) {}
         QVector3D val;
         int decimals;
+		bool readOnly;
     };
 
     void slotDoubleChanged(QtProperty *property, double value);

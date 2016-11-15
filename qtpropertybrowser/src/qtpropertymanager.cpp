@@ -1174,29 +1174,25 @@ void QtDoublePropertyManager::uninitializeProperty(QtProperty *property)
 
 
 
-// QtDoubleNPropertyManager
+// QtDoubleVectorPropertyManager
 
-void QtDoubleNPropertyManagerPrivate::slotDoubleChanged(QtProperty *property, double value)
+void QtDoubleVectorPropertyManagerPrivate::slotDoubleChanged(QtProperty *subprop, double value)
 {
-	for( auto i=0; i<QtDoubleN::MAX_SIZE; i++ ) {
-		if( QtProperty *prop = m_fieldToProperty[i].value(property, 0) ) {
-			auto p = m_values[prop].val;
-			p.val[i] = value;
-			q_ptr->setValue(prop, p);
-			break;
-		}
-    } 
+	if( QtProperty *prop = m_fieldToProperty.value(subprop, 0) ) {
+		int i = m_propertyToField[prop].indexOf(subprop);
+		auto p = m_values[prop].val;
+		p[i] = value;
+		q_ptr->setValue(prop, p);
+	}
 }
 
-void QtDoubleNPropertyManagerPrivate::slotPropertyDestroyed(QtProperty *property)
+void QtDoubleVectorPropertyManagerPrivate::slotPropertyDestroyed(QtProperty *subprop)
 {
-	for( auto i=0; i<QtDoubleN::MAX_SIZE; i++ ) {
-		if( QtProperty *subprop  = m_fieldToProperty[i].value(property, 0) ) {
-			m_propertyToField[i][subprop] = 0;
-			m_fieldToProperty[i].remove(property);
-			break;
-		}
-    } 
+	if( QtProperty *prop  = m_fieldToProperty.value(subprop, 0) ) {
+		int i = m_propertyToField[prop].indexOf(subprop);
+		m_propertyToField[prop].removeAt(i);
+		m_fieldToProperty.remove(subprop);
+	}
 }
 
 
@@ -1266,10 +1262,10 @@ changes its single step property, passing a pointer to the
 /*!
 Creates a manager with the given \a parent.
 */
-QtDoubleNPropertyManager::QtDoubleNPropertyManager(QObject *parent)
+QtDoubleVectorPropertyManager::QtDoubleVectorPropertyManager(QObject *parent)
 	: QtAbstractPropertyManager(parent)
 {
-	d_ptr = new QtDoubleNPropertyManagerPrivate;
+	d_ptr = new QtDoubleVectorPropertyManagerPrivate;
 	d_ptr->q_ptr = this;
 
     d_ptr->m_doublePropertyManager = new QtDoublePropertyManager(this);
@@ -1282,7 +1278,7 @@ QtDoubleNPropertyManager::QtDoubleNPropertyManager(QObject *parent)
 /*!
 Destroys  this manager, and all the properties it has created.
 */
-QtDoubleNPropertyManager::~QtDoubleNPropertyManager()
+QtDoubleVectorPropertyManager::~QtDoubleVectorPropertyManager()
 {
 	clear();
 	delete d_ptr;
@@ -1298,7 +1294,7 @@ QtDoubleNPropertyManager::~QtDoubleNPropertyManager()
 
     \sa QtAbstractPropertyBrowser::setFactoryForManager()
 */
-QtDoublePropertyManager *QtDoubleNPropertyManager::subDoublePropertyManager() const
+QtDoublePropertyManager *QtDoubleVectorPropertyManager::subDoublePropertyManager() const
 {
     return d_ptr->m_doublePropertyManager;
 }
@@ -1311,19 +1307,19 @@ function returns 0.
 
 \sa setValue()
 */
-QtDoubleN QtDoubleNPropertyManager::value(const QtProperty *property) const
+QtDoubleVector QtDoubleVectorPropertyManager::value(const QtProperty *property) const
 {
-	return getValue<QtDoubleN>(d_ptr->m_values, property);
+	return getValue<QtDoubleVector>(d_ptr->m_values, property);
 }
 
 
-QVariant QtDoubleNPropertyManager::variantValue(const QtProperty *property) const
+QVariant QtDoubleVectorPropertyManager::variantValue(const QtProperty *property) const
 {
 	return QVariant::fromValue(value(property));
 }
 
 
-QVariant QtDoubleNPropertyManager::attributeValue(const QtProperty *property, const QString &attribute) const
+QVariant QtDoubleVectorPropertyManager::attributeValue(const QtProperty *property, const QString &attribute) const
 {
 	if( attribute == "minimum" ) {
 		return QVariant(minimum(property));
@@ -1342,12 +1338,12 @@ QVariant QtDoubleNPropertyManager::attributeValue(const QtProperty *property, co
 }
 
 
-int QtDoubleNPropertyManager::propertyTypeId() const
+int QtDoubleVectorPropertyManager::propertyTypeId() const
 {
-	return qtDoubleNTypeId();
+	return qtDoubleVectorTypeId();
 }
 
-QList<QtAbstractPropertyManager*> QtDoubleNPropertyManager::subPropertyManagers() const
+QList<QtAbstractPropertyManager*> QtDoubleVectorPropertyManager::subPropertyManagers() const
 {
 	return{ subDoublePropertyManager() };
 }
@@ -1357,7 +1353,7 @@ Returns the given \a property's minimum value.
 
 \sa maximum(), setRange()
 */
-double QtDoubleNPropertyManager::minimum(const QtProperty *property) const
+double QtDoubleVectorPropertyManager::minimum(const QtProperty *property) const
 {
 	return getMinimum<double>(d_ptr->m_values, property, 0.0);
 }
@@ -1367,7 +1363,7 @@ Returns the given \a property's maximum value.
 
 \sa minimum(), setRange()
 */
-double QtDoubleNPropertyManager::maximum(const QtProperty *property) const
+double QtDoubleVectorPropertyManager::maximum(const QtProperty *property) const
 {
 	return getMaximum<double>(d_ptr->m_values, property, std::numeric_limits<double>::max());
 }
@@ -1379,9 +1375,9 @@ The step is typically used to increment or decrement a property value while pres
 
 \sa setSingleStep()
 */
-double QtDoubleNPropertyManager::singleStep(const QtProperty *property) const
+double QtDoubleVectorPropertyManager::singleStep(const QtProperty *property) const
 {
-	return getData<double>(d_ptr->m_values, &QtDoubleNPropertyManagerPrivate::Data::singleStep, property, 0);
+	return getData<double>(d_ptr->m_values, &QtDoubleVectorPropertyManagerPrivate::Data::singleStep, property, 0);
 }
 
 /*!
@@ -1389,9 +1385,9 @@ Returns the given \a property's precision, in decimals.
 
 \sa setDecimals()
 */
-int QtDoubleNPropertyManager::decimals(const QtProperty *property) const
+int QtDoubleVectorPropertyManager::decimals(const QtProperty *property) const
 {
-	return getData<int>(d_ptr->m_values, &QtDoubleNPropertyManagerPrivate::Data::decimals, property, 0);
+	return getData<int>(d_ptr->m_values, &QtDoubleVectorPropertyManagerPrivate::Data::decimals, property, 0);
 }
 
 /*!
@@ -1401,23 +1397,23 @@ When property is read-only it's value can be selected and copied from editor but
 
 \sa QtDouble2PropertyManager::setReadOnly
 */
-bool QtDoubleNPropertyManager::isReadOnly(const QtProperty *property) const
+bool QtDoubleVectorPropertyManager::isReadOnly(const QtProperty *property) const
 {
-	return getData<bool>(d_ptr->m_values, &QtDoubleNPropertyManagerPrivate::Data::readOnly, property, false);
+	return getData<bool>(d_ptr->m_values, &QtDoubleVectorPropertyManagerPrivate::Data::readOnly, property, false);
 }
 
 /*!
 \reimp
 */
-QString QtDoubleNPropertyManager::valueText(const QtProperty *property) const
+QString QtDoubleVectorPropertyManager::valueText(const QtProperty *property) const
 {
 	auto it = d_ptr->m_values.constFind(property);
 	if( it == d_ptr->m_values.constEnd() )
 		return QString();
 
-	const QtDoubleN v = it.value().val;
+	const QtDoubleVector v = it.value().val;
     const int       dec =  it.value().decimals;
-	int             n = v.n;
+	int             n = v.size();
 
 	if( n <= 0 ) {
 		return QString();
@@ -1426,10 +1422,10 @@ QString QtDoubleNPropertyManager::valueText(const QtProperty *property) const
 	QString         text = "(";
 	int             i;
 	for( i=0; i < n - 1; i++ ) {
-		text += QString::number(v.val[i], 'f', dec) + ", ";
+		text += QString::number(v[i], 'f', dec) + ", ";
 	}
 	if( i < n ) {
-		text += QString::number(v.val[i], 'f', dec) + ")";
+		text += QString::number(v[i], 'f', dec) + ")";
 	}
 
 	return text;
@@ -1446,7 +1442,7 @@ within the range.
 
 \sa value(), setRange(), valueChanged()
 */
-void QtDoubleNPropertyManager::setValue(QtProperty *property, const QtDoubleN& val)
+void QtDoubleVectorPropertyManager::setValue(QtProperty *property, const QtDoubleVector& val)
 {
     auto it = d_ptr->m_values.find(property);
     if (it == d_ptr->m_values.end())
@@ -1458,24 +1454,37 @@ void QtDoubleNPropertyManager::setValue(QtProperty *property, const QtDoubleN& v
 		return;
 	}
 
-	if( old_val.n != val.n ) {
-		for( auto i=0; i < old_val.n; i++ ) {
-			property->removeSubProperty(d_ptr->m_propertyToField[i][property]);
-		}
-		for( auto i=0; i < val.n; i++ ) {
-			property->addSubProperty(d_ptr->m_propertyToField[i][property]);
+	if( old_val.size() != val.size() ) {
+		// 기존 subproperty 삭제
+		qDeleteAll(d_ptr->m_propertyToField[property]);
+		d_ptr->m_propertyToField.remove(property);
+
+		// subproperty 생성하여 삽입
+		for( auto i=0; i < val.size(); i++ ) {
+			QtProperty *subprop = d_ptr->m_doublePropertyManager->addProperty();
+			subprop->setPropertyName(tr("[%1]").arg(i));
+			d_ptr->m_doublePropertyManager->setDecimals(subprop, decimals(property));
+			d_ptr->m_doublePropertyManager->setMinimum(subprop, minimum(property));
+			d_ptr->m_doublePropertyManager->setMaximum(subprop, maximum(property));
+			d_ptr->m_doublePropertyManager->setSingleStep(subprop, singleStep(property));
+			d_ptr->m_doublePropertyManager->setReadOnly(subprop, isReadOnly(property));
+			//d_ptr->m_doublePropertyManager->setValue(subprop, 0);
+			d_ptr->m_propertyToField[property].push_back(subprop);
+			d_ptr->m_fieldToProperty[subprop] = property;
+			property->addSubProperty(subprop);
 		}
 	}
 
 	auto new_val = val;
-	for( auto i=0; i<val.n; i++ ) {
-		new_val.val[i] = qBound(it.value().minVal, val.val[i], it.value().maxVal);
+	
+	for( auto i=0; i<val.size(); i++ ) {
+		new_val[i] = qBound(it.value().minVal, val[i], it.value().maxVal);
 	}
 
     it.value().val = new_val;
 
-	for( auto i=0; i<new_val.n; i++ ) {
-		d_ptr->m_doublePropertyManager->setValue(d_ptr->m_propertyToField[i][property], new_val.val[i]);
+	for( auto i=0; i<new_val.size(); i++ ) {
+		d_ptr->m_doublePropertyManager->setValue(d_ptr->m_propertyToField[property][i], new_val[i]);
 	}
 
     emit propertyChanged(property);
@@ -1483,7 +1492,7 @@ void QtDoubleNPropertyManager::setValue(QtProperty *property, const QtDoubleN& v
 	emit QtAbstractPropertyManager::valueChanged(property, QVariant::fromValue(new_val));
 }
 
-void QtDoubleNPropertyManager::setAttribute(QtProperty *property, const QString &attribute, const QVariant &value)
+void QtDoubleVectorPropertyManager::setAttribute(QtProperty *property, const QString &attribute, const QVariant &value)
 {
 	if( attribute == "minimum" ) {
 		setMinimum(property, qvariant_cast<double>(value));
@@ -1501,10 +1510,10 @@ void QtDoubleNPropertyManager::setAttribute(QtProperty *property, const QString 
 }
 
 
-void QtDoubleNPropertyManager::setValue(QtProperty *property, const QVariant &val)
+void QtDoubleVectorPropertyManager::setValue(QtProperty *property, const QVariant &val)
 {
-	Q_ASSERT(val.canConvert<QtDoubleN>());
-	auto s_val = qvariant_cast<QtDoubleN>(val);
+	Q_ASSERT(val.canConvert<QtDoubleVector>());
+	auto s_val = qvariant_cast<QtDoubleVector>(val);
 	setValue(property, s_val);
 }
 
@@ -1516,13 +1525,13 @@ The step is typically used to increment or decrement a property value while pres
 
 \sa singleStep()
 */
-void QtDoubleNPropertyManager::setSingleStep(QtProperty *property, double step)
+void QtDoubleVectorPropertyManager::setSingleStep(QtProperty *property, double step)
 {
 	auto it = d_ptr->m_values.find(property);
 	if( it == d_ptr->m_values.end() )
 		return;
 
-	QtDoubleNPropertyManagerPrivate::Data data = it.value();
+	QtDoubleVectorPropertyManagerPrivate::Data data = it.value();
 
 	if( step < 0 )
 		step = 0;
@@ -1534,8 +1543,8 @@ void QtDoubleNPropertyManager::setSingleStep(QtProperty *property, double step)
 
 	it.value() = data;
 
-	for( auto i=0; i<QtDoubleN::MAX_SIZE; i++ ) {
-		d_ptr->m_doublePropertyManager->setSingleStep(d_ptr->m_propertyToField[i][property], data.singleStep);
+	for( auto subprop : d_ptr->m_propertyToField[property] ) {
+		d_ptr->m_doublePropertyManager->setSingleStep(subprop, data.singleStep);
 	}
 
 	emit singleStepChanged(property, data.singleStep);
@@ -1547,13 +1556,13 @@ Sets read-only status of the property.
 
 \sa QtDouble2PropertyManager::setReadOnly
 */
-void QtDoubleNPropertyManager::setReadOnly(QtProperty *property, bool readOnly)
+void QtDoubleVectorPropertyManager::setReadOnly(QtProperty *property, bool readOnly)
 {
 	auto it = d_ptr->m_values.find(property);
 	if( it == d_ptr->m_values.end() )
 		return;
 
-	QtDoubleNPropertyManagerPrivate::Data data = it.value();
+	QtDoubleVectorPropertyManagerPrivate::Data data = it.value();
 
 	if( data.readOnly == readOnly )
 		return;
@@ -1561,8 +1570,8 @@ void QtDoubleNPropertyManager::setReadOnly(QtProperty *property, bool readOnly)
 	data.readOnly = readOnly;
 	it.value() = data;
 
-	for( auto i=0; i<QtDoubleN::MAX_SIZE; i++ ) {
-		d_ptr->m_doublePropertyManager->setReadOnly(d_ptr->m_propertyToField[i][property], data.readOnly);
+	for( auto subprop : d_ptr->m_propertyToField[property] ) {
+		d_ptr->m_doublePropertyManager->setReadOnly(subprop, data.readOnly);
 	}
 
 	emit propertyChanged(property);
@@ -1579,13 +1588,13 @@ The valid decimal range is 0-13. The default is 2.
 
 \sa decimals()
 */
-void QtDoubleNPropertyManager::setDecimals(QtProperty *property, int prec)
+void QtDoubleVectorPropertyManager::setDecimals(QtProperty *property, int prec)
 {
-	const QtDoubleNPropertyManagerPrivate::PropertyValueMap::iterator it = d_ptr->m_values.find(property);
+	const QtDoubleVectorPropertyManagerPrivate::PropertyValueMap::iterator it = d_ptr->m_values.find(property);
 	if( it == d_ptr->m_values.end() )
 		return;
 
-	QtDoubleNPropertyManagerPrivate::Data data = it.value();
+	QtDoubleVectorPropertyManagerPrivate::Data data = it.value();
 
 	if( prec > 13 )
 		prec = 13;
@@ -1599,8 +1608,8 @@ void QtDoubleNPropertyManager::setDecimals(QtProperty *property, int prec)
 
 	it.value() = data;
 
-	for( auto i=0; i<QtDoubleN::MAX_SIZE; i++ ) {
-		d_ptr->m_doublePropertyManager->setDecimals(d_ptr->m_propertyToField[i][property], data.decimals);
+	for( auto subprop : d_ptr->m_propertyToField[property] ) {
+		d_ptr->m_doublePropertyManager->setDecimals(subprop, data.decimals);
 	}
 
 	emit propertyChanged(property);
@@ -1617,7 +1626,7 @@ that the current value is within in the range).
 
 \sa minimum(), setRange(), rangeChanged()
 */
-void QtDoubleNPropertyManager::setMinimum(QtProperty *property, double minVal)
+void QtDoubleVectorPropertyManager::setMinimum(QtProperty *property, double minVal)
 {
 	auto it = d_ptr->m_values.find(property);
 	if( it == d_ptr->m_values.end() ) {
@@ -1642,8 +1651,8 @@ void QtDoubleNPropertyManager::setMinimum(QtProperty *property, double minVal)
 		emit attributeChanged(property, "maximum", data.maxVal);
 	}
 
-	for( auto i=0; i<QtDoubleN::MAX_SIZE; i++ ) {
-		d_ptr->m_doublePropertyManager->setMinimum(d_ptr->m_propertyToField[i][property], minVal);
+	for( auto subprop : d_ptr->m_propertyToField[property] ) {
+		d_ptr->m_doublePropertyManager->setMinimum(subprop, minVal);
 	}
 
 	if( data.val != oldVal ) {
@@ -1662,7 +1671,7 @@ that the current value is within in the range).
 
 \sa maximum(), setRange(), rangeChanged()
 */
-void QtDoubleNPropertyManager::setMaximum(QtProperty *property, double maxVal)
+void QtDoubleVectorPropertyManager::setMaximum(QtProperty *property, double maxVal)
 {
 	auto it = d_ptr->m_values.find(property);
 	if( it == d_ptr->m_values.end() ) {
@@ -1687,8 +1696,8 @@ void QtDoubleNPropertyManager::setMaximum(QtProperty *property, double maxVal)
 		emit attributeChanged(property, "minimum", data.minVal);
 	}
 
-	for( auto i=0; i<QtDoubleN::MAX_SIZE; i++ ) {
-		d_ptr->m_doublePropertyManager->setMaximum(d_ptr->m_propertyToField[i][property], maxVal);
+	for( auto subprop : d_ptr->m_propertyToField[property] ) {
+		d_ptr->m_doublePropertyManager->setMaximum(subprop, maxVal);
 	}
 
 	if( data.val != oldVal ) {
@@ -1712,7 +1721,7 @@ necessary (ensuring that the value remains within range).
 
 \sa setMinimum(), setMaximum(), rangeChanged()
 */
-void QtDoubleNPropertyManager::setRange(QtProperty *property, double minVal, double maxVal)
+void QtDoubleVectorPropertyManager::setRange(QtProperty *property, double minVal, double maxVal)
 {
 	auto it = d_ptr->m_values.find(property);
 	if( it == d_ptr->m_values.end() ) {
@@ -1743,9 +1752,9 @@ void QtDoubleNPropertyManager::setRange(QtProperty *property, double minVal, dou
 		emit attributeChanged(property, "maximum", data.maxVal);
 	}
 
-	for( auto i=0; i<QtDoubleN::MAX_SIZE; i++ ) {
-		d_ptr->m_doublePropertyManager->setMinimum(d_ptr->m_propertyToField[i][property], minVal);
-		d_ptr->m_doublePropertyManager->setMaximum(d_ptr->m_propertyToField[i][property], maxVal);
+	for( auto subprop : d_ptr->m_propertyToField[property] ) {
+		d_ptr->m_doublePropertyManager->setMinimum(subprop, minVal);
+		d_ptr->m_doublePropertyManager->setMaximum(subprop, maxVal);
 	}
 
 	if( data.val != oldVal ) {
@@ -1758,64 +1767,41 @@ void QtDoubleNPropertyManager::setRange(QtProperty *property, double minVal, dou
 /*!
 \reimp
 */
-void QtDoubleNPropertyManager::initializeProperty(QtProperty *property)
+void QtDoubleVectorPropertyManager::initializeProperty(QtProperty *property)
 {
-	d_ptr->m_values[property] = QtDoubleNPropertyManagerPrivate::Data();
-
-	for( auto i=0; i < QtDoubleN::MAX_SIZE; i++ ) {
-		QtProperty *subprop = d_ptr->m_doublePropertyManager->addProperty();
-		subprop->setPropertyName(tr("[%1]").arg(i));
-		d_ptr->m_doublePropertyManager->setDecimals(subprop, decimals(property));
-		d_ptr->m_doublePropertyManager->setMinimum(subprop, minimum(property));
-		d_ptr->m_doublePropertyManager->setMaximum(subprop, maximum(property));
-		d_ptr->m_doublePropertyManager->setSingleStep(subprop, singleStep(property));
-		d_ptr->m_doublePropertyManager->setValue(subprop, 0);
-		d_ptr->m_propertyToField[i][property] = subprop;
-		d_ptr->m_fieldToProperty[i][subprop] = property;
-	}
+	d_ptr->m_values[property] = QtDoubleVectorPropertyManagerPrivate::Data();
 }
 
 /*!
 \reimp
 */
-void QtDoubleNPropertyManager::uninitializeProperty(QtProperty *property)
+void QtDoubleVectorPropertyManager::uninitializeProperty(QtProperty *property)
 {
-	for( auto i=0; i < QtDoubleN::MAX_SIZE; i++ ) {
-		QtProperty *subprop = d_ptr->m_propertyToField[i][property];
-		if( subprop ) {
-			d_ptr->m_fieldToProperty[i].remove(subprop);
-			delete subprop;
-		}
-		d_ptr->m_propertyToField[i].remove(property);
-	}
-
+	qDeleteAll(d_ptr->m_propertyToField[property]);
+	d_ptr->m_propertyToField.remove(property);
 	d_ptr->m_values.remove(property);
 }
 
 
-// QtIntNPropertyManager
+// QtIntVectorPropertyManager
 
-void QtIntNPropertyManagerPrivate::slotIntChanged(QtProperty *property, int value)
+void QtIntVectorPropertyManagerPrivate::slotIntChanged(QtProperty *subprop, int value)
 {
-	for( auto i=0; i<QtIntN::MAX_SIZE; i++ ) {
-		if( QtProperty *prop = m_fieldToProperty[i].value(property, 0) ) {
-			auto p = m_values[prop].val;
-			p.val[i] = value;
-			q_ptr->setValue(prop, p);
-			break;
-		}
-    } 
+	if( QtProperty *prop = m_fieldToProperty.value(subprop, 0) ) {
+		int i = m_propertyToField[prop].indexOf(subprop);
+		auto p = m_values[prop].val;
+		p[i] = value;
+		q_ptr->setValue(prop, p);
+	}
 }
 
-void QtIntNPropertyManagerPrivate::slotPropertyDestroyed(QtProperty *property)
+void QtIntVectorPropertyManagerPrivate::slotPropertyDestroyed(QtProperty *subprop)
 {
-	for( auto i=0; i<QtIntN::MAX_SIZE; i++ ) {
-		if( QtProperty *subprop  = m_fieldToProperty[i].value(property, 0) ) {
-			m_propertyToField[i][subprop] = 0;
-			m_fieldToProperty[i].remove(property);
-			break;
-		}
-    } 
+	if( QtProperty *prop  = m_fieldToProperty.value(subprop, 0) ) {
+		int i = m_propertyToField[prop].indexOf(subprop);
+		m_propertyToField[prop].removeAt(i);
+		m_fieldToProperty.remove(subprop);
+	}
 }
 
 
@@ -1885,10 +1871,10 @@ changes its single step property, passing a pointer to the
 /*!
 Creates a manager with the given \a parent.
 */
-QtIntNPropertyManager::QtIntNPropertyManager(QObject *parent)
+QtIntVectorPropertyManager::QtIntVectorPropertyManager(QObject *parent)
 	: QtAbstractPropertyManager(parent)
 {
-	d_ptr = new QtIntNPropertyManagerPrivate;
+	d_ptr = new QtIntVectorPropertyManagerPrivate;
 	d_ptr->q_ptr = this;
 
     d_ptr->m_intPropertyManager = new QtIntPropertyManager(this);
@@ -1901,7 +1887,7 @@ QtIntNPropertyManager::QtIntNPropertyManager(QObject *parent)
 /*!
 Destroys  this manager, and all the properties it has created.
 */
-QtIntNPropertyManager::~QtIntNPropertyManager()
+QtIntVectorPropertyManager::~QtIntVectorPropertyManager()
 {
 	clear();
 	delete d_ptr;
@@ -1917,7 +1903,7 @@ QtIntNPropertyManager::~QtIntNPropertyManager()
 
     \sa QtAbstractPropertyBrowser::setFactoryForManager()
 */
-QtIntPropertyManager *QtIntNPropertyManager::subIntPropertyManager() const
+QtIntPropertyManager *QtIntVectorPropertyManager::subIntPropertyManager() const
 {
     return d_ptr->m_intPropertyManager;
 }
@@ -1930,19 +1916,19 @@ function returns 0.
 
 \sa setValue()
 */
-QtIntN QtIntNPropertyManager::value(const QtProperty *property) const
+QtIntVector QtIntVectorPropertyManager::value(const QtProperty *property) const
 {
-	return getValue<QtIntN>(d_ptr->m_values, property);
+	return getValue<QtIntVector>(d_ptr->m_values, property);
 }
 
 
-QVariant QtIntNPropertyManager::variantValue(const QtProperty *property) const
+QVariant QtIntVectorPropertyManager::variantValue(const QtProperty *property) const
 {
 	return QVariant::fromValue(value(property));
 }
 
 
-QVariant QtIntNPropertyManager::attributeValue(const QtProperty *property, const QString &attribute) const
+QVariant QtIntVectorPropertyManager::attributeValue(const QtProperty *property, const QString &attribute) const
 {
 	if( attribute == "minimum" ) {
 		return QVariant(minimum(property));
@@ -1959,12 +1945,12 @@ QVariant QtIntNPropertyManager::attributeValue(const QtProperty *property, const
 }
 
 
-int QtIntNPropertyManager::propertyTypeId() const
+int QtIntVectorPropertyManager::propertyTypeId() const
 {
-	return qtIntNTypeId();
+	return qtIntVectorTypeId();
 }
 
-QList<QtAbstractPropertyManager*> QtIntNPropertyManager::subPropertyManagers() const
+QList<QtAbstractPropertyManager*> QtIntVectorPropertyManager::subPropertyManagers() const
 {
 	return{ subIntPropertyManager() };
 }
@@ -1974,7 +1960,7 @@ Returns the given \a property's minimum value.
 
 \sa maximum(), setRange()
 */
-int QtIntNPropertyManager::minimum(const QtProperty *property) const
+int QtIntVectorPropertyManager::minimum(const QtProperty *property) const
 {
 	return getMinimum<int>(d_ptr->m_values, property, 0);
 }
@@ -1984,7 +1970,7 @@ Returns the given \a property's maximum value.
 
 \sa minimum(), setRange()
 */
-int QtIntNPropertyManager::maximum(const QtProperty *property) const
+int QtIntVectorPropertyManager::maximum(const QtProperty *property) const
 {
 	return getMaximum<int>(d_ptr->m_values, property, std::numeric_limits<int>::max());
 }
@@ -1996,9 +1982,9 @@ The step is typically used to increment or decrement a property value while pres
 
 \sa setSingleStep()
 */
-int QtIntNPropertyManager::singleStep(const QtProperty *property) const
+int QtIntVectorPropertyManager::singleStep(const QtProperty *property) const
 {
-	return getData<int>(d_ptr->m_values, &QtIntNPropertyManagerPrivate::Data::singleStep, property, 1);
+	return getData<int>(d_ptr->m_values, &QtIntVectorPropertyManagerPrivate::Data::singleStep, property, 1);
 }
 
 /*!
@@ -2008,22 +1994,22 @@ When property is read-only it's value can be selected and copied from editor but
 
 \sa QtDouble2PropertyManager::setReadOnly
 */
-bool QtIntNPropertyManager::isReadOnly(const QtProperty *property) const
+bool QtIntVectorPropertyManager::isReadOnly(const QtProperty *property) const
 {
-	return getData<bool>(d_ptr->m_values, &QtIntNPropertyManagerPrivate::Data::readOnly, property, false);
+	return getData<bool>(d_ptr->m_values, &QtIntVectorPropertyManagerPrivate::Data::readOnly, property, false);
 }
 
 /*!
 \reimp
 */
-QString QtIntNPropertyManager::valueText(const QtProperty *property) const
+QString QtIntVectorPropertyManager::valueText(const QtProperty *property) const
 {
 	auto it = d_ptr->m_values.constFind(property);
 	if( it == d_ptr->m_values.constEnd() )
 		return QString();
 
-	const QtIntN v = it.value().val;
-	int          n = v.n;
+	const QtIntVector v = it.value().val;
+	int               n = v.size();
 
 	if( n <= 0 ) {
 		return QString();
@@ -2032,10 +2018,10 @@ QString QtIntNPropertyManager::valueText(const QtProperty *property) const
 	QString         text = "(";
 	int             i;
 	for( i=0; i < n - 1; i++ ) {
-		text += QString::number(v.val[i]) + ", ";
+		text += QString::number(v[i]) + ", ";
 	}
 	if( i < n ) {
-		text += QString::number(v.val[i]) + ")";
+		text += QString::number(v[i]) + ")";
 	}
 
 	return text;
@@ -2052,7 +2038,7 @@ within the range.
 
 \sa value(), setRange(), valueChanged()
 */
-void QtIntNPropertyManager::setValue(QtProperty *property, const QtIntN& val)
+void QtIntVectorPropertyManager::setValue(QtProperty *property, const QtIntVector& val)
 {
     auto it = d_ptr->m_values.find(property);
     if (it == d_ptr->m_values.end())
@@ -2064,24 +2050,35 @@ void QtIntNPropertyManager::setValue(QtProperty *property, const QtIntN& val)
 		return;
 	}
 
-	if( old_val.n != val.n ) {
-		for( auto i=0; i < old_val.n; i++ ) {
-			property->removeSubProperty(d_ptr->m_propertyToField[i][property]);
-		}
-		for( auto i=0; i < val.n; i++ ) {
-			property->addSubProperty(d_ptr->m_propertyToField[i][property]);
+	if( old_val.size() != val.size() ) {
+		// 기존 subproperty 삭제
+		qDeleteAll(d_ptr->m_propertyToField[property]);
+		d_ptr->m_propertyToField.remove(property);
+
+		// subproperty 생성하여 삽입
+		for( auto i=0; i < val.size(); i++ ) {
+			QtProperty *subprop = d_ptr->m_intPropertyManager->addProperty();
+			subprop->setPropertyName(tr("[%1]").arg(i));
+			d_ptr->m_intPropertyManager->setMinimum(subprop, minimum(property));
+			d_ptr->m_intPropertyManager->setMaximum(subprop, maximum(property));
+			d_ptr->m_intPropertyManager->setSingleStep(subprop, singleStep(property));
+			d_ptr->m_intPropertyManager->setReadOnly(subprop, isReadOnly(property));
+			d_ptr->m_propertyToField[property].push_back(subprop);
+			d_ptr->m_fieldToProperty[subprop] = property;
+			property->addSubProperty(subprop);
 		}
 	}
 
 	auto new_val = val;
-	for( auto i=0; i<val.n; i++ ) {
-		new_val.val[i] = qBound(it.value().minVal, val.val[i], it.value().maxVal);
+
+	for( auto i=0; i<val.size(); i++ ) {
+		new_val[i] = qBound(it.value().minVal, val[i], it.value().maxVal);
 	}
 
     it.value().val = new_val;
 
-	for( auto i=0; i<new_val.n; i++ ) {
-		d_ptr->m_intPropertyManager->setValue(d_ptr->m_propertyToField[i][property], new_val.val[i]);
+	for( auto i=0; i<new_val.size(); i++ ) {
+		d_ptr->m_intPropertyManager->setValue(d_ptr->m_propertyToField[property][i], new_val[i]);
 	}
 
     emit propertyChanged(property);
@@ -2089,7 +2086,7 @@ void QtIntNPropertyManager::setValue(QtProperty *property, const QtIntN& val)
 	emit QtAbstractPropertyManager::valueChanged(property, QVariant::fromValue(new_val));
 }
 
-void QtIntNPropertyManager::setAttribute(QtProperty *property, const QString &attribute, const QVariant &value)
+void QtIntVectorPropertyManager::setAttribute(QtProperty *property, const QString &attribute, const QVariant &value)
 {
 	if( attribute == "minimum" ) {
 		setMinimum(property, qvariant_cast<double>(value));
@@ -2105,10 +2102,10 @@ void QtIntNPropertyManager::setAttribute(QtProperty *property, const QString &at
 }
 
 
-void QtIntNPropertyManager::setValue(QtProperty *property, const QVariant &val)
+void QtIntVectorPropertyManager::setValue(QtProperty *property, const QVariant &val)
 {
-	Q_ASSERT(val.canConvert<QtIntN>());
-	auto s_val = qvariant_cast<QtIntN>(val);
+	Q_ASSERT(val.canConvert<QtIntVector>());
+	auto s_val = qvariant_cast<QtIntVector>(val);
 	setValue(property, s_val);
 }
 
@@ -2120,13 +2117,13 @@ The step is typically used to increment or decrement a property value while pres
 
 \sa singleStep()
 */
-void QtIntNPropertyManager::setSingleStep(QtProperty *property, int step)
+void QtIntVectorPropertyManager::setSingleStep(QtProperty *property, int step)
 {
 	auto it = d_ptr->m_values.find(property);
 	if( it == d_ptr->m_values.end() )
 		return;
 
-	QtIntNPropertyManagerPrivate::Data data = it.value();
+	QtIntVectorPropertyManagerPrivate::Data data = it.value();
 
 	if( step < 0 )
 		step = 0;
@@ -2138,8 +2135,8 @@ void QtIntNPropertyManager::setSingleStep(QtProperty *property, int step)
 
 	it.value() = data;
 
-	for( auto i=0; i<QtIntN::MAX_SIZE; i++ ) {
-		d_ptr->m_intPropertyManager->setSingleStep(d_ptr->m_propertyToField[i][property], data.singleStep);
+	for( auto subprop : d_ptr->m_propertyToField[property] ) {
+		d_ptr->m_intPropertyManager->setSingleStep(subprop, data.singleStep);
 	}
 
 	emit singleStepChanged(property, data.singleStep);
@@ -2151,13 +2148,13 @@ Sets read-only status of the property.
 
 \sa QtDouble2PropertyManager::setReadOnly
 */
-void QtIntNPropertyManager::setReadOnly(QtProperty *property, bool readOnly)
+void QtIntVectorPropertyManager::setReadOnly(QtProperty *property, bool readOnly)
 {
 	auto it = d_ptr->m_values.find(property);
 	if( it == d_ptr->m_values.end() )
 		return;
 
-	QtIntNPropertyManagerPrivate::Data data = it.value();
+	QtIntVectorPropertyManagerPrivate::Data data = it.value();
 
 	if( data.readOnly == readOnly )
 		return;
@@ -2165,8 +2162,8 @@ void QtIntNPropertyManager::setReadOnly(QtProperty *property, bool readOnly)
 	data.readOnly = readOnly;
 	it.value() = data;
 
-	for( auto i=0; i<QtIntN::MAX_SIZE; i++ ) {
-		d_ptr->m_intPropertyManager->setReadOnly(d_ptr->m_propertyToField[i][property], data.readOnly);
+	for( auto subprop : d_ptr->m_propertyToField[property] ) {
+		d_ptr->m_intPropertyManager->setReadOnly(subprop, data.readOnly);
 	}
 
 	emit propertyChanged(property);
@@ -2183,7 +2180,7 @@ that the current value is within in the range).
 
 \sa minimum(), setRange(), rangeChanged()
 */
-void QtIntNPropertyManager::setMinimum(QtProperty *property, int minVal)
+void QtIntVectorPropertyManager::setMinimum(QtProperty *property, int minVal)
 {
 	auto it = d_ptr->m_values.find(property);
 	if( it == d_ptr->m_values.end() ) {
@@ -2208,8 +2205,8 @@ void QtIntNPropertyManager::setMinimum(QtProperty *property, int minVal)
 		emit attributeChanged(property, "maximum", data.maxVal);
 	}
 
-	for( auto i=0; i<QtIntN::MAX_SIZE; i++ ) {
-		d_ptr->m_intPropertyManager->setMinimum(d_ptr->m_propertyToField[i][property], minVal);
+	for( auto subprop : d_ptr->m_propertyToField[property] ) {
+		d_ptr->m_intPropertyManager->setMinimum(subprop, minVal);
 	}
 
 	if( data.val != oldVal ) {
@@ -2228,7 +2225,7 @@ that the current value is within in the range).
 
 \sa maximum(), setRange(), rangeChanged()
 */
-void QtIntNPropertyManager::setMaximum(QtProperty *property, int maxVal)
+void QtIntVectorPropertyManager::setMaximum(QtProperty *property, int maxVal)
 {
 	auto it = d_ptr->m_values.find(property);
 	if( it == d_ptr->m_values.end() ) {
@@ -2253,8 +2250,8 @@ void QtIntNPropertyManager::setMaximum(QtProperty *property, int maxVal)
 		emit attributeChanged(property, "minimum", data.minVal);
 	}
 
-	for( auto i=0; i<QtIntN::MAX_SIZE; i++ ) {
-		d_ptr->m_intPropertyManager->setMaximum(d_ptr->m_propertyToField[i][property], maxVal);
+	for( auto subprop : d_ptr->m_propertyToField[property] ) {
+		d_ptr->m_intPropertyManager->setMaximum(subprop, maxVal);
 	}
 
 	if( data.val != oldVal ) {
@@ -2278,7 +2275,7 @@ necessary (ensuring that the value remains within range).
 
 \sa setMinimum(), setMaximum(), rangeChanged()
 */
-void QtIntNPropertyManager::setRange(QtProperty *property, int minVal, int maxVal)
+void QtIntVectorPropertyManager::setRange(QtProperty *property, int minVal, int maxVal)
 {
 	auto it = d_ptr->m_values.find(property);
 	if( it == d_ptr->m_values.end() ) {
@@ -2309,9 +2306,9 @@ void QtIntNPropertyManager::setRange(QtProperty *property, int minVal, int maxVa
 		emit attributeChanged(property, "maximum", data.maxVal);
 	}
 
-	for( auto i=0; i<QtIntN::MAX_SIZE; i++ ) {
-		d_ptr->m_intPropertyManager->setMinimum(d_ptr->m_propertyToField[i][property], minVal);
-		d_ptr->m_intPropertyManager->setMaximum(d_ptr->m_propertyToField[i][property], maxVal);
+	for( auto subprop : d_ptr->m_propertyToField[property] ) {
+		d_ptr->m_intPropertyManager->setMinimum(subprop, minVal);
+		d_ptr->m_intPropertyManager->setMaximum(subprop, maxVal);
 	}
 
 	if( data.val != oldVal ) {
@@ -2324,36 +2321,18 @@ void QtIntNPropertyManager::setRange(QtProperty *property, int minVal, int maxVa
 /*!
 \reimp
 */
-void QtIntNPropertyManager::initializeProperty(QtProperty *property)
+void QtIntVectorPropertyManager::initializeProperty(QtProperty *property)
 {
-	d_ptr->m_values[property] = QtIntNPropertyManagerPrivate::Data();
-
-	for( auto i=0; i < QtIntN::MAX_SIZE; i++ ) {
-		QtProperty *subprop = d_ptr->m_intPropertyManager->addProperty();
-		subprop->setPropertyName(tr("[%1]").arg(i));
-		d_ptr->m_intPropertyManager->setMinimum(subprop, minimum(property));
-		d_ptr->m_intPropertyManager->setMaximum(subprop, maximum(property));
-		d_ptr->m_intPropertyManager->setSingleStep(subprop, singleStep(property));
-		d_ptr->m_intPropertyManager->setValue(subprop, 0);
-		d_ptr->m_propertyToField[i][property] = subprop;
-		d_ptr->m_fieldToProperty[i][subprop] = property;
-	}
+	d_ptr->m_values[property] = QtIntVectorPropertyManagerPrivate::Data();
 }
 
 /*!
 \reimp
 */
-void QtIntNPropertyManager::uninitializeProperty(QtProperty *property)
+void QtIntVectorPropertyManager::uninitializeProperty(QtProperty *property)
 {
-	for( auto i=0; i < QtIntN::MAX_SIZE; i++ ) {
-		QtProperty *subprop = d_ptr->m_propertyToField[i][property];
-		if( subprop ) {
-			d_ptr->m_fieldToProperty[i].remove(subprop);
-			delete subprop;
-		}
-		d_ptr->m_propertyToField[i].remove(property);
-	}
-
+	qDeleteAll(d_ptr->m_propertyToField[property]);
+	d_ptr->m_propertyToField.remove(property);
 	d_ptr->m_values.remove(property);
 }
 
@@ -4348,6 +4327,8 @@ QVariant QtVector3DPropertyManager::attributeValue(const QtProperty *property, c
 {
 	if( attribute == "decimals" ) {
 		return QVariant(decimals(property));
+	} else if( attribute == "readOnly" ) {
+		return QVariant(isReadOnly(property));
 	} else {
 		qWarning("%s(): invalid attribute '%s'", __FUNCTION__, qPrintable(attribute));
 	}
@@ -4381,6 +4362,13 @@ QList<QtAbstractPropertyManager*> QtVector3DPropertyManager::subPropertyManagers
 int QtVector3DPropertyManager::decimals(const QtProperty *property) const {
     return getData<int>(d_ptr->m_values, &QtVector3DPropertyManagerPrivate::Data::decimals, property, 0);
 }
+
+
+bool QtVector3DPropertyManager::isReadOnly(const QtProperty *property) const
+{
+    return getData<bool>(d_ptr->m_values, &QtVector3DPropertyManagerPrivate::Data::readOnly, property, false);
+}
+
 
 /*!
     \reimp
@@ -4429,6 +4417,8 @@ void QtVector3DPropertyManager::setAttribute(QtProperty *property, const QString
 {
 	if( attribute == "decimals" ) {
 		setDecimals(property, qvariant_cast<int>(value));
+	} else if( attribute == "readOnly" ) {
+		setReadOnly(property, qvariant_cast<bool>(value));
 	} else {
 		qWarning("%s(): invalid attribute '%s'", __FUNCTION__, qPrintable(attribute));
 	}
@@ -4478,6 +4468,31 @@ void QtVector3DPropertyManager::setDecimals(QtProperty *property, int prec) {
 	emit attributeChanged(property, "decimals", data.decimals);
 }
 
+
+void QtVector3DPropertyManager::setReadOnly(QtProperty *property, bool readOnly)
+{
+    const auto it = d_ptr->m_values.find(property);
+    if (it == d_ptr->m_values.end())
+        return;
+
+    QtVector3DPropertyManagerPrivate::Data data = it.value();
+
+	if( data.readOnly == readOnly ) {
+		return;
+	}
+
+	data.readOnly = readOnly;
+	d_ptr->m_doublePropertyManager->setReadOnly(d_ptr->m_propertyToX[property], readOnly);
+	d_ptr->m_doublePropertyManager->setReadOnly(d_ptr->m_propertyToY[property], readOnly);
+	d_ptr->m_doublePropertyManager->setReadOnly(d_ptr->m_propertyToZ[property], readOnly);
+
+    it.value() = data;
+
+	emit readOnlyChanged(property, data.readOnly);
+	emit attributeChanged(property, "readOnly", data.readOnly);
+}
+
+
 /*!
     \reimp
 */
@@ -4487,6 +4502,7 @@ void QtVector3DPropertyManager::initializeProperty(QtProperty *property) {
     QtProperty *xProp = d_ptr->m_doublePropertyManager->addProperty();
     xProp->setPropertyName(tr("X"));
     d_ptr->m_doublePropertyManager->setDecimals(xProp, decimals(property));
+    d_ptr->m_doublePropertyManager->setReadOnly(xProp, isReadOnly(property));
     d_ptr->m_doublePropertyManager->setValue(xProp, 0);
     d_ptr->m_propertyToX[property] = xProp;
     d_ptr->m_xToProperty[xProp] = property;
@@ -4495,6 +4511,7 @@ void QtVector3DPropertyManager::initializeProperty(QtProperty *property) {
     QtProperty *yProp = d_ptr->m_doublePropertyManager->addProperty();
     yProp->setPropertyName(tr("Y"));
     d_ptr->m_doublePropertyManager->setDecimals(yProp, decimals(property));
+    d_ptr->m_doublePropertyManager->setReadOnly(yProp, isReadOnly(property));
     d_ptr->m_doublePropertyManager->setValue(yProp, 0);
     d_ptr->m_propertyToY[property] = yProp;
     d_ptr->m_yToProperty[yProp] = property;
@@ -4503,6 +4520,7 @@ void QtVector3DPropertyManager::initializeProperty(QtProperty *property) {
     QtProperty *zProp = d_ptr->m_doublePropertyManager->addProperty();
     zProp->setPropertyName(tr("Z"));
     d_ptr->m_doublePropertyManager->setDecimals(zProp, decimals(property));
+    d_ptr->m_doublePropertyManager->setReadOnly(zProp, isReadOnly(property));
     d_ptr->m_doublePropertyManager->setValue(zProp, 0);
     d_ptr->m_propertyToZ[property] = zProp;
     d_ptr->m_zToProperty[zProp] = property;

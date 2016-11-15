@@ -198,27 +198,30 @@ int main(int argc, char **argv)
 	item->setAttribute("alphaHidden", true);
 	topItem->addSubProperty(item);
 
+    item = variantManager->addProperty(QMetaType::QVector3D, QString::number(i++) + QLatin1String(" Vector3D Property"));
+	item->setValue(QVector3D(-1.2f, 10.44f, 1024.5f));
+	item->setAttribute("readOnly", true);
+	topItem->addSubProperty(item);
+
 	{
-		item = variantManager->addProperty(qtDoubleNTypeId(), QString::number(i++) + QLatin1String(" DoubleN Property"));
-		QtDoubleN val;
-		val.n = 3;
-		val.val[0] = 0.01;
-		val.val[1] = 0.50;
-		val.val[2] = 9.00;
+		item = variantManager->addProperty(qtDoubleVectorTypeId(), QString::number(i++) + QLatin1String(" Double Vector Property"));
 		item->setAttribute("maximum", 8.0);
-		item->setValue(QVariant::fromValue(val));
+		item->setAttribute("singleStep", 2.49);
+		item->setAttribute("readOnly", true);
+		item->setValue(QVariant::fromValue(QtDoubleVector{ 0.01, 0.50, 9.00 }));
 		topItem->addSubProperty(item);
 	}
 
 	{
-		item = variantManager->addProperty(qtIntNTypeId(), QString::number(i++) + QLatin1String(" IntN Property"));
-		QtIntN val;
-		val.n = 12;
-		for( auto i=0; i < val.n; i++ ) {
-			val.val[i] = i * 2;
+		item = variantManager->addProperty(qtIntVectorTypeId(), QString::number(i++) + QLatin1String(" Int Vector Property"));
+		QtIntVector val;
+		for( auto i=0; i < 12; i++ ) {
+			val.push_back(i * 2);
 		}
 		item->setValue(QVariant::fromValue(val));
 		item->setAttribute("maximum", 1023);
+		item->setAttribute("singleStep", 10);
+		item->setAttribute("readOnly", true);
 		topItem->addSubProperty(item);
 	}
 
